@@ -4,4 +4,4 @@ src/tools/yaml2xml quant.conf > tmp/ex3.xml
 rm -f out/*
 
 PATH=src/assembly
-time quantum
+time assemble

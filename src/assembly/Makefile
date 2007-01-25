@@ -1,6 +1,5 @@
 # $Id: Makefile,v 1.12 2003/11/06 20:30:20 benkirk Exp $
 
-#meshdir := ~/fem/libmesh-latest/libmesh
 include ../paths
 
 target 	   := ./quantum

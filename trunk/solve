@@ -2,7 +2,7 @@
 
 #src/solver-pysparse/solve.py
 #src/solver-petsc/solver -f1 ../../tmp/matA.petsc -f2 ../../tmp/matM.petsc -eps_nev 4
-src/solver-petsc/solver -f1 ../../tmp/matA.petsc -f2 ../../tmp/matM.petsc -eps_nev 1 #-eps_type arpack
+src/solver-petsc/solver -f ../../tmp/matA.petsc #-eps_type arpack
 
-src/mesh/gmv2pos 
+#src/mesh/gmv2pos 
 #gzip -f tmp/sol.pos

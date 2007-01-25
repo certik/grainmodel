@@ -235,7 +235,7 @@ void assemble_poisson(EquationSystems& es,
     */
 
     //print matrices A and M
-    std::cout << "saving matrices..." << std::endl;
+    std::cout << "saving matrix to tmp/matA.petsc" << std::endl;
     save_sparse_matrix(matrix_A,"tmp/matA.petsc");
 //    save_sparse_matrix(matrix_B,"tmp/matM.petsc");
     //matrix_A.print_matlab("tmp/matA.matlab");

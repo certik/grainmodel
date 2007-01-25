@@ -1,0 +1,4 @@
+cd ..
+X=`pwd`
+cd src
+../contrib/subs.py paths.template $X > paths

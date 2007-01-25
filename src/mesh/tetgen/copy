@@ -1,0 +1,4 @@
+#! /bin/bash
+
+cp tmp/in.xda ../tmp
+cp tmp/zeronodes.gmsh ../tmp

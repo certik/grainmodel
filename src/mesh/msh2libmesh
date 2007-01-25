@@ -1,0 +1,43 @@
+#! /usr/bin/python
+
+def list2line(l):
+    #s="%d "%(len(l))
+    s=""
+    for n in l: s+="%d "%(n)
+    return s[:-1]+"\n"
+
+def writexta(filename,eldata):
+	f=file(filename,"w")
+	f.write(" # Data description\n")
+	f.write("REAL	 # type of values\n")
+	f.write("%d	 # No. of nodes for which data is stored\n"%(0))
+	f.write("%d	 # No. of elements for which data is stored\n"%len(eldata))
+	for id,data in eldata:
+		f.write("%d	 # Foreign element id\n"%(id))
+		f.write("%d	 # vector length\n"%len(data))
+		f.write(("%e "*len(data))%tuple(data)+"	 # Values\n")
+
+
+import meshutils
+
+m=meshutils.mesh()
+b=meshutils.bound()
+
+print "reading..."
+m.readmsh("tmp/t1.msh",b,False,False)
+#print "associating..."
+#b.associateelements(m.elements)
+print "writing msh..."
+m.writemsh("tmp/t12.msh")
+print "writing xda..."
+#m.writexda("tmp/in.xda",b)
+m.writexda("tmp/in.xda")
+
+f=file("tmp/zeronodes.gmsh","w")
+f.write(list2line(b.getf(1)))
+
+#eldata=[]+\
+#	[ [id-1,[0.001,2]] for id in b.getf(1)]
+#writexta("data.xta",eldata)
+
+m.printinfo()

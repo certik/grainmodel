@@ -1,0 +1,22 @@
+#! /usr/bin/python
+
+def readline(fname,type=float):
+    f=file(fname)
+    return [type(x) for x in f.readline().split()]
+
+def remap(mapping,nodes):
+    return [nodes[x] for x in mapping]
+    
+import sys,meshutils,glob
+#for fname in glob.glob("out/*.gmv"):
+#    print "processing:",fname
+#    m=meshutils.mesh()
+#    m.scalars=m.readGMV(fname)
+#    m.writescalarspos(fname[:-4]+".pos","libmesh")
+for fname in ("tmp/sol.dat",):#glob.glob("out/*.dat"):
+    print "processing:",fname
+    m=meshutils.mesh()
+    m.readmsh("tmp/t12.msh")
+    mapping=readline("tmp/nodemap.libmesh",int)
+    m.scalars=remap(mapping,readline(fname))
+    m.writescalarspos(fname[:-4]+".pos","libmesh")

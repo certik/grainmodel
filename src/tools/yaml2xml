@@ -1,0 +1,12 @@
+#! /usr/bin/python
+#you need syck (python-syck package on debian)
+#usage: yaml2xml input.yml > output.xml
+
+
+import sys,syck
+
+sys.path.append("/usr/share/pycentral/python-syck/site-packages/")
+import yaml2xml
+
+print yaml2xml.yaml2xml(syck.load(file(sys.argv[1]).read()))
+

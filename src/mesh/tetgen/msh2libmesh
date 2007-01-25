@@ -1,0 +1,65 @@
+#! /usr/bin/python
+
+def list2line(l):
+    #s="%d "%(len(l))
+    s=""
+    for n in l: s+="%d "%(n)
+    return s[:-1]+"\n"
+
+def readtetgen(m,fname):
+    def getnodes(fnods):
+        f=file(fnods)
+        l=[int(x) for x in f.readline().split()]
+        npoints,dim,nattrib,nbound=l
+        assert dim==3
+        nodes=[]
+        for line in f:
+            if line[0]=="#": continue
+            l=[float(x) for x in line.split()]
+            l[0]=int(l[0])
+            nodes.append(tuple(l))
+            assert l[0]==len(nodes)
+        assert npoints==len(nodes)
+        return nodes
+    def getele(fele):
+        f=file(fele)
+        l=[int(x) for x in f.readline().split()]
+        ntetra,nnod,nattrib=l
+        assert nnod==4
+        els=[]
+        for line in f:
+            if line[0]=="#": continue
+            l=[float(x) for x in line.split()]
+            l[0]=int(l[0])
+            els.append((l[0],54,l[1],l[2],l[3],l[4]))
+            assert l[0]==len(els)
+        return els
+    m.nodes=getnodes(fname+".node")
+    m.elements=getele(fname+".ele")
+    m.is2d=False;
+
+def findnodes(m):
+    bound=[]
+    for n in m.nodes:
+        x,y,z=n[1:]
+        r=math.sqrt(x**2+y**2+z**2)
+        if r>9.9:
+            bound.append(n[0])
+    return bound
+
+
+import meshutils,math
+
+m=meshutils.mesh()
+b=meshutils.bound()
+
+print "reading..."
+readtetgen(m,"tmp/t1.1")
+print "writing msh..."
+m.writemsh("tmp/t12.msh")
+print "writing xda..."
+m.writexda("tmp/in.xda")
+
+n=findnodes(m)
+f=file("tmp/zeronodes.gmsh","w")
+f.write(list2line(n))

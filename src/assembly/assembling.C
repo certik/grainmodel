@@ -30,6 +30,7 @@
 #include "sparse_matrix.h"
 #include "petsc_matrix.h"
 #include "dense_matrix.h"
+#include "dense_vector.h"
 #include "elem.h"
 
 #include "dof_map.h"
@@ -93,16 +94,6 @@ void save_elem(std::ostream& f, const Elem* el,
     f << std::endl;
 }
 
-void save_topo(std::ostream& f, const Elem* el,
-        std::vector<unsigned int>& dof_indices)
-{
-    f << el->id() << " ";
-    for (int i=0;i<el->n_nodes();i++)
-        //save the original node numbers
-        f << el->node(i) << " ";
-    f << std::endl;
-}
-
 //mapping from orig ids to libmesh's ids.
 void save_node_map(const char* fname, const Mesh& mesh)
 {
@@ -148,8 +139,7 @@ void assemble_poisson(EquationSystems& es,
 	const std::vector<std::vector<RealGradient> >& dphi = fe->get_dphi();
 
 	DenseMatrix<Number> Ke;
-	DenseMatrix<Number> Ve;
-	DenseMatrix<Number> Me;
+	DenseVector<Number> Fee;
 	std::vector<unsigned int> dof_indices;
 
     SparseMatrix<Number>&  matrix_A = *system.matrix_A;
@@ -167,11 +157,12 @@ void assemble_poisson(EquationSystems& es,
     std::ofstream f("tmp/matrices.dat");
     std::ofstream ftopo("tmp/topo.dat");
     save_node_map("tmp/nodemap.libmesh", mesh);
-	std::vector<unsigned int> zeronodes;
-    load_zeronodes("tmp/zeronodes.gmsh", zeronodes);
+//	std::vector<unsigned int> zeronodes;
+//    load_zeronodes("tmp/zeronodes.gmsh", zeronodes);
 
 	MeshBase::const_element_iterator       el     = mesh.elements_begin();
 	const MeshBase::const_element_iterator end_el = mesh.elements_end();
+    std::cout << "Start" << std::endl;
 	for ( ; el != end_el ; ++el)
 	{
 		perf.start_event("elem init");
@@ -181,8 +172,7 @@ void assemble_poisson(EquationSystems& es,
 		dof_map.dof_indices (elem, dof_indices);
 		fe->reinit (elem);
 		Ke.resize (dof_indices.size(), dof_indices.size());
-		Ve.resize (dof_indices.size(), dof_indices.size());
-		Me.resize (dof_indices.size(), dof_indices.size());
+		Fee.resize (dof_indices.size());
 		perf.stop_event("elem init");
 
 		perf.start_event("Ke");
@@ -190,50 +180,50 @@ void assemble_poisson(EquationSystems& es,
 		{
             Real hbar=config.hbar;
             Real m=config.m;
-            Real C=hbar*hbar/(2.0*m);
+            Real lambda=1.0;
 			for (unsigned int i=0; i<phi.size(); i++)
 			for (unsigned int j=0; j<phi.size(); j++)
-				Ke(i,j) += JxW[qp]*(dphi[i][qp]*dphi[j][qp])*C;
+				Ke(i,j) += JxW[qp]*(dphi[i][qp]*dphi[j][qp])*lambda;
 		} 
 		perf.stop_event("Ke");
 
-		perf.start_event("Ve");
-		for (unsigned int qp=0; qp<qrule.n_points(); qp++)
-		{
-			for (unsigned int i=0; i<phi.size(); i++)
-			for (unsigned int j=0; j<phi.size(); j++)
-				Ve(i,j) += JxW[qp]*(phi[i][qp]*phi[j][qp]);
-		} 
-		perf.stop_event("Ve");
-
-		perf.start_event("Me");
-		for (unsigned int qp=0; qp<qrule.n_points(); qp++)
-		{
-			for (unsigned int i=0; i<phi.size(); i++)
-			for (unsigned int j=0; j<phi.size(); j++)
-				Me(i,j) += JxW[qp]*(phi[i][qp]*phi[j][qp]);
-		} 
-		perf.stop_event("Me");
-
 		perf.start_event("matrix insertion");
         matrix_A.add_matrix (Ke, dof_indices);
-        matrix_A.add_matrix (Ve, dof_indices);
-        matrix_B.add_matrix (Me, dof_indices);
-		perf.stop_event("matrix insertion");
 
-		perf.start_event("matrix saving");
-        //save matrices A and M to "matrices.dat"
-        /*
-        save_matrix(f,Ke);
-        save_matrix(f,Ve);
-        save_matrix(f,Me);
-        */
-        //save the topology to "topo.dat"
-        save_topo(ftopo,elem,dof_indices);
-		perf.stop_event("matrix saving");
+		{
+		perf.start_event("Fe");
+		for (unsigned int side=0; side<elem->n_sides(); side++)
+			if ((elem->id()==60) and (side+1==2))
+		{
+			const std::vector<std::vector<Real> >&  phi_face=fe_face->get_phi();
+			const std::vector<Real>& JxW_face = fe_face->get_JxW();
+			const std::vector<Point >& qface_point = fe_face->get_xyz();
+			fe_face->reinit(elem, side);
+
+			Real value;
+            value=1.0;
+
+			for (unsigned int qp=0; qp<qface.n_points(); qp++)
+			{
+				const Real xf = qface_point[qp](0);
+				const Real yf = qface_point[qp](1);
+				const Real penalty = 1.e10;
+
+				for (unsigned int i=0; i<phi_face.size(); i++)
+				for (unsigned int j=0; j<phi_face.size(); j++)
+					Ke(i,j) += JxW_face[qp]*
+						penalty*phi_face[i][qp]*phi_face[j][qp];
+
+				for (unsigned int i=0; i<phi_face.size(); i++)
+					Fee(i) += JxW_face[qp]*penalty*value*phi_face[i][qp];
+			} 
+		}
+		perf.stop_event("Fe");
+        }
+		perf.stop_event("matrix insertion");
 	} //for element
 
-    //assing the value 0 to every node from "zeronodes" using a penalty method
+/*    //assing the value 0 to every node from "zeronodes" using a penalty method
     for (int i=0;i<zeronodes.size();i++)
     {
         unsigned int nd =mesh.node(zeronodes[i]-1).dof_number(0,0,0);
@@ -242,11 +232,12 @@ void assemble_poisson(EquationSystems& es,
         matrix_A.add(nd,nd,penalty*1001.5);
         matrix_B.add(nd,nd,penalty);
     }
+    */
 
     //print matrices A and M
     std::cout << "saving matrices..." << std::endl;
     save_sparse_matrix(matrix_A,"tmp/matA.petsc");
-    save_sparse_matrix(matrix_B,"tmp/matM.petsc");
+//    save_sparse_matrix(matrix_B,"tmp/matM.petsc");
     //matrix_A.print_matlab("tmp/matA.matlab");
     //matrix_B.print_matlab("tmp/matM.matlab");
     if (!config.printlog) perf.clear();

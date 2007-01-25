@@ -17,3 +17,8 @@ usage
 ./solve
 
 ./clean
+
+Documentation
+=============
+
+In the doc directory (see README there) to compile the tex sources.

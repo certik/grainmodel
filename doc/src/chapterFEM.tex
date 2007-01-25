@@ -2,35 +2,27 @@
 
 \section{Introduction}
 
-This chapter explains FEM and gives concrete formulas which are needed in the
-calculation.
+We have a very simple model: we start with the continuity equation:
+$$\nabla\cdot{\bf j}=-{\partial\rho\over\partial t}$$
+and using the Ohm's law ${\bf j}=\sigma{\bf E}=-\sigma\nabla\varphi$ and setting
+${\partial\rho\over\partial t}=0$ we get:
+$$\nabla\cdot\sigma\nabla\varphi=0$$
 
-\section{Weak Formulation of the Schr\"odinger Equation}
+More sophisticated model can be found at:
 
-One particle Schr\"odinger equation is
-$$\left(-{\hbar^2\over2m}\nabla^2 + V\right)\psi=E\psi\,.$$
-We multiply both sides by a test function $v$
-$$-\left({\hbar^2\over2m}\nabla^2\psi\right)v=(E-V)\psi v\,,$$
-and integrate over the whole volume we are interested in
-$$\int-\left({\hbar^2\over2m}\nabla^2\psi\right)v\,\d V=\int(E-V)\psi v\,\d
-V\,,\no{1}$$
-and using the vector identity
-$$-\left(\nabla^2\psi)\right)v=\nabla \psi\cdot
-\nabla v - \nabla\cdot\left((\nabla \psi)v\right),$$
-we rewrite the left hand side of \rno{1}
-$$\int{\hbar^2\over2m}\nabla\psi\cdot\nabla v\,\d V=\int(E-V)\psi v\,\d
-V+\int{\hbar^2\over2m}\nabla\cdot\left((\nabla \psi)v\right)\,\d V\,,$$
-now we apply Gauss Theorem
-$$\int{\hbar^2\over2m}\nabla\psi\cdot\nabla v\,\d V=\int(E-V)\psi v\,\d
-V+\oint{\hbar^2\over2m}(\nabla \psi)v\cdot{\bf n}\,\d S\,,$$
-and rewriting $\nabla\psi\cdot{\bf n}\equiv{\d\psi\over\d n}$
-%$$\int{\hbar^2\over2m}\nabla\psi\cdot\nabla v\,\d V=\int(E-V)\psi v\,\d
-%V+\oint{\hbar^2\over2m}{\d\psi\over\d n}v\,\d S\,,\no{w}$$
-$$\int{\hbar^2\over2m}\nabla\psi\cdot\nabla v\,\d V+ \int vV\psi\,\d V
-=
-\int E\psi v\,\d V + \oint{\hbar^2\over2m}{\d\psi\over\d n}v\,\d S\,,\no{w}$$
-which is the weak formulation. The problem reads: find a function $\psi$ such
-that \rno{w} holds for every $v$.
+http://www.wias-berlin.de/project-areas/micro-el/power/index.html.en
+
+\section{Weak Formulation of the Poisson Equation}
+
+The Poisson equation is:
+$$\nabla\cdot\lambda\nabla\varphi=-f$$
+and the corresponding weak formulation is
+$$\int\lambda\nabla\varphi\cdot\nabla v\,\d V= \int fv\,\d V+
+\oint\lambda{\d\varphi\over\d n}v\,\d S\,,\no{w}$$
+where ${\d\varphi\over\d n}\equiv\nabla\varphi\cdot{\bf n}$
+The problem reads: find a function $\varphi$ such that \rno{w} holds for every
+$v$.
+
 
 \section{Finite Elements}
 

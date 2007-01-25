@@ -1,1 +1,0 @@
-./solver -f1 ../../tmp/matA.matlab -f2 ../../tmp/matM.matlab -st_type sinvert

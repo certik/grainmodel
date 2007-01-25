@@ -1,2 +1,0 @@
-PATH=.:$PATH
-solver -f1 tmp/matA.matlab -f2 tmp/matM.matlab -eps_type arpack -eps_smallest_real -eps_nev 2 -eps_tol 1e-3

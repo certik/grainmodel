@@ -1,0 +1,5 @@
+dftfem=%s
+
+meshdir := $(dftfem)/contrib/libs/libmesh
+PETSC_DIR=$(dftfem)/contrib/libs/petsc
+SLEPC_DIR=$(dftfem)/contrib/libs/slepc

@@ -21,13 +21,15 @@
 #include "mesh_data.h"
 #include "mesh_tools.h"
 #include "boundary_info.h"
-#include "eigen_system.h"
+//#include "eigen_system.h"
+#include "linear_implicit_system.h"
 #include "equation_systems.h"
 
 #include "fe.h"
 #include "quadrature_gauss.h"
 
 #include "sparse_matrix.h"
+#include "petsc_vector.h"
 #include "petsc_matrix.h"
 #include "dense_matrix.h"
 #include "dense_vector.h"
@@ -50,6 +52,33 @@ inline int get_local_id(const Elem *elem, int i)
 void save_matrix(std::ostream& f, DenseMatrix<Number>& M)
 {
     M.print_scientific(f);
+}
+
+void save_vector(NumericVector<Number>& M, const char *fname)
+{
+    //M.print_matlab(fname);
+
+    int ierr=0; 
+    PetscViewer petsc_viewer;
+
+    M.close();
+    ierr = PetscViewerCreate (libMesh::COMM_WORLD, &petsc_viewer);
+    CHKERRABORT(libMesh::COMM_WORLD,ierr);
+
+    ierr = PetscViewerBinaryOpen( libMesh::COMM_WORLD, fname, FILE_MODE_WRITE,
+            &petsc_viewer);
+    CHKERRABORT(libMesh::COMM_WORLD,ierr);
+
+    ierr = PetscViewerSetFormat (petsc_viewer, PETSC_VIEWER_BINARY_DEFAULT);
+    CHKERRABORT(libMesh::COMM_WORLD,ierr);
+
+    Vec mat = ((PetscVector<Number>&)(M)).vec();
+
+    ierr = VecView (mat, petsc_viewer);
+    CHKERRABORT(libMesh::COMM_WORLD,ierr);
+
+    ierr = PetscViewerDestroy (petsc_viewer);
+    CHKERRABORT(libMesh::COMM_WORLD,ierr);
 }
 
 void save_sparse_matrix(SparseMatrix<Number>& M, const char *fname)
@@ -124,7 +153,7 @@ void assemble_poisson(EquationSystems& es,
 	const Mesh& mesh = es.get_mesh();
 	const MeshData& mesh_data = es.get_mesh_data();
 	const unsigned int dim = mesh.mesh_dimension();
-	EigenSystem& system=es.get_system<EigenSystem>("Poisson");
+	LinearImplicitSystem& system=es.get_system<LinearImplicitSystem>("Poisson");
 	const DofMap& dof_map = system.get_dof_map();
 	FEType fe_type = dof_map.variable_type(0);
 	AutoPtr<FEBase> fe (FEBase::build(dim, fe_type));
@@ -142,8 +171,9 @@ void assemble_poisson(EquationSystems& es,
 	DenseVector<Number> Fee;
 	std::vector<unsigned int> dof_indices;
 
-    SparseMatrix<Number>&  matrix_A = *system.matrix_A;
-    SparseMatrix<Number>&  matrix_B = *system.matrix_B;
+    SparseMatrix<Number>&  matrix_A = *system.matrix;
+    NumericVector<Number>&  vector_F = *system.rhs;
+//    PetscVector<Number> vector_F;
 
     QGauss qquad(2,FIFTH);
     //QGauss qquad(2,FORTYTHIRD);
@@ -187,9 +217,6 @@ void assemble_poisson(EquationSystems& es,
 		} 
 		perf.stop_event("Ke");
 
-		perf.start_event("matrix insertion");
-        matrix_A.add_matrix (Ke, dof_indices);
-
 		{
 		perf.start_event("Fe");
 		for (unsigned int side=0; side<elem->n_sides(); side++)
@@ -220,6 +247,11 @@ void assemble_poisson(EquationSystems& es,
 		}
 		perf.stop_event("Fe");
         }
+
+		perf.start_event("matrix insertion");
+
+        matrix_A.add_matrix (Ke, dof_indices);
+        vector_F.add_vector (Fee, dof_indices);
 		perf.stop_event("matrix insertion");
 	} //for element
 
@@ -237,6 +269,8 @@ void assemble_poisson(EquationSystems& es,
     //print matrices A and M
     std::cout << "saving matrix to tmp/matA.petsc" << std::endl;
     save_sparse_matrix(matrix_A,"tmp/matA.petsc");
+    std::cout << "saving vector to tmp/vecF.petsc" << std::endl;
+    save_vector(vector_F,"tmp/vecF.petsc");
 //    save_sparse_matrix(matrix_B,"tmp/matM.petsc");
     //matrix_A.print_matlab("tmp/matA.matlab");
     //matrix_B.print_matlab("tmp/matM.matlab");

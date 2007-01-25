@@ -18,7 +18,8 @@
 #include "mesh.h"
 #include "mesh_data.h"
 #include "gmv_io.h"
-#include "eigen_system.h"
+//#include "eigen_system.h"
+#include "linear_implicit_system.h"
 #include "equation_systems.h"
 
 #include "configfile.h"
@@ -51,19 +52,20 @@ int main (int argc, char** argv)
 		//mesh.print_info();
 
 		EquationSystems equation_systems (mesh,&mesh_data);
-        EigenSystem & eigen_system =
-	    	equation_systems.add_system<EigenSystem> ("Poisson");
+        LinearImplicitSystem & eigen_system =
+	    	equation_systems.add_system<LinearImplicitSystem> ("Poisson");
+	    	//equation_systems.add_system<EigenSystem> ("Poisson");
 		equation_systems.get_system("Poisson").add_variable("u", FIRST);
 		equation_systems.get_system("Poisson").attach_assemble_function (assemble_poisson);
         unsigned int nev = config.eigs;
         equation_systems.parameters.set<unsigned int>("eigenpairs")    = nev;
         equation_systems.parameters.set<unsigned int>("basis vectors") = nev*3;
-        eigen_system.eigen_solver-> set_eigensolver_type(ARNOLDI);
+//        eigen_system.eigen_solver-> set_eigensolver_type(ARNOLDI);
         //eigen_system.eigen_solver-> set_eigensolver_type(SUBSPACE);
         //eigen_system.eigen_solver-> set_eigensolver_type(POWER);
-        eigen_system.eigen_solver-> set_eigensolver_type(LANCZOS);
-        eigen_system.set_eigenproblem_type(GHEP);
-        eigen_system.eigen_solver->set_position_of_spectrum(SMALLEST_MAGNITUDE);
+//        eigen_system.eigen_solver-> set_eigensolver_type(LANCZOS);
+//        eigen_system.set_eigenproblem_type(GHEP);
+//        eigen_system.eigen_solver->set_position_of_spectrum(SMALLEST_MAGNITUDE);
         //eigen_system.eigen_solver->set_position_of_spectrum(LARGEST_MAGNITUDE);
         equation_systems.parameters.set<Real>("linear solver tolerance") = 
             pow(TOLERANCE, 5./3.);
@@ -73,34 +75,7 @@ int main (int argc, char** argv)
 		//equation_systems.print_info();
 		perf.stop_event("program init");
 
-        if (config.solve) {
-		perf.start_event("solve");
-		equation_systems.get_system("Poisson").solve();
-		perf.stop_event("solve");
-
-		perf.start_event("saving");
-        unsigned int nconv = eigen_system.get_n_converged();
-        std::cout << "Number of converged eigenpairs: " << nconv
-            << "\n" << std::endl;
-        if (nconv != 0)
-        {
-            if (nconv > 100) nconv=100;
-            std::cout << "Lowest " << nconv << " energies" << std::endl;
-            for (int i=0; i<nconv;i++)
-            {
-                std::pair<Real,Real> E = eigen_system.get_eigenpair(i);
-                std::cout <<i<<": "<<E.first << " + i" << E.second << std::endl;
-                char buf[14];
-                sprintf(buf,"out/out-%04d.gmv",i);
-                GMVIO (mesh).write_equation_systems (buf, equation_systems);
-            }
-        }
-        else
-            std::cout << "WARNING: Solver did not converge!\n" << 
-                nconv << std::endl;
-		perf.stop_event("saving");
-        }
-        else if (config.assemble) {
+        if (config.assemble) {
             assemble_poisson(equation_systems, "Poisson");
         }
         if (!config.printlog) perf.clear();

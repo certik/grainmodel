@@ -26,6 +26,7 @@ int main(int argc,char **args)
   Vec            x,b,u,Ab;          /* approx solution, RHS, exact solution */
   PetscViewer    fd;               /* viewer */
   char           file[PETSC_MAX_PATH_LEN];     /* input file name */
+  char           file2[PETSC_MAX_PATH_LEN];     /* input file name */
   PetscErrorCode ierr,ierrp;
   PetscInt       its,n,m;
   PetscReal      norm;
@@ -37,7 +38,8 @@ int main(int argc,char **args)
      Determine files from which we read the linear system
      (matrix and right-hand-side vector).
   */
-  ierr = PetscOptionsGetString(PETSC_NULL,"-f",file,PETSC_MAX_PATH_LEN-1,PETSC_NULL);CHKERRQ(ierr);
+  ierr = PetscOptionsGetString(PETSC_NULL,"-f1",file,PETSC_MAX_PATH_LEN-1,PETSC_NULL);CHKERRQ(ierr);
+  ierr = PetscOptionsGetString(PETSC_NULL,"-f2",file2,PETSC_MAX_PATH_LEN-1,PETSC_NULL);CHKERRQ(ierr);
 
   /* -----------------------------------------------------------
                   Beginning of linear solver loop
@@ -62,22 +64,11 @@ int main(int argc,char **args)
        reading from this file.
     */
     ierr = PetscViewerBinaryOpen(PETSC_COMM_WORLD,file,FILE_MODE_READ,&fd);CHKERRQ(ierr);
-
-    /*
-       Load the matrix and vector; then destroy the viewer.
-    */
     ierr  = MatLoad(fd,MATMPIAIJ,&A);CHKERRQ(ierr);
-    ierr  = PetscPushErrorHandler(PetscIgnoreErrorHandler,PETSC_NULL);CHKERRQ(ierr);
-    ierrp = VecLoad(fd,PETSC_NULL,&b);
-    ierr  = PetscPopErrorHandler();CHKERRQ(ierr);
-    ierr  = MatGetLocalSize(A,&m,&n);CHKERRQ(ierr);
-    if (ierrp) { /* if file contains no RHS, then use a vector of all ones */
-      PetscScalar one = 1.0;
-      ierr = VecCreate(PETSC_COMM_WORLD,&b);CHKERRQ(ierr);
-      ierr = VecSetSizes(b,m,PETSC_DECIDE);CHKERRQ(ierr);
-      ierr = VecSetFromOptions(b);CHKERRQ(ierr);
-      ierr = VecSet(b,one);CHKERRQ(ierr);
-    }
+    ierr = PetscViewerDestroy(fd);CHKERRQ(ierr);
+
+    ierr = PetscViewerBinaryOpen(PETSC_COMM_WORLD,file2,FILE_MODE_READ,&fd);CHKERRQ(ierr);
+    ierrp = VecLoad(fd,PETSC_NULL,&b);CHKERRQ(ierr);
     ierr = PetscViewerDestroy(fd);CHKERRQ(ierr);
 
     /* 

@@ -1,0 +1,19 @@
+install
+=======
+
+cd src
+make 
+
+to clean sources:
+
+cd src
+make clean
+
+usage
+=====
+
+./mesh
+./assemble
+./solve
+
+./clean

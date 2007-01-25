@@ -2,7 +2,7 @@
 
 include ../paths
 
-target 	   := ./quantum
+target 	   := ./assemble
 
 
 all:: $(target)
@@ -52,7 +52,7 @@ $(target): $(objects)
 # Useful rules.
 clean:
 	@rm -f $(objects) *~
-	@rm -f quantum
+	@rm -f assemble
 	@rm -f .depend
 
 clobber:

@@ -33,6 +33,8 @@ int main(int argc,char **args)
 
   PetscInitialize(&argc,&args,(char *)0,help);
 
+  ierr = PetscPrintf(PETSC_COMM_WORLD,"starting...\n");CHKERRQ(ierr);
+
 
   /* 
      Determine files from which we read the linear system

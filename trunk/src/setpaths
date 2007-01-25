@@ -1,4 +1,3 @@
-cd ..
-X=`pwd`
-cd src
-../contrib/subs.py paths.template $X > paths
+X=/home/ondra/libmeshpetscpackage
+
+./subs.py paths.template $X > paths

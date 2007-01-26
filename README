@@ -6,9 +6,13 @@ install
 usage
 =====
 
+input is the geometry in mesh/t.geo
+
 ./mesh
 ./assemble
 ./solve
+
+output is the solution in tmp/sol.pos
 
 to clean everything
 ===================

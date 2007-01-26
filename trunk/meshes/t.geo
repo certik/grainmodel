@@ -64,3 +64,4 @@ Physical Volume (101)={609};
 //Delete { Volume{1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16}; }
 
 Physical Surface(1) = {68};
+Physical Surface(2) = {528,454,348,306,200,126,52,601};

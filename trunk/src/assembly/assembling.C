@@ -220,7 +220,9 @@ void assemble_poisson(EquationSystems& es,
 		{
 		perf.start_event("Fe");
 		for (unsigned int side=0; side<elem->n_sides(); side++)
-			if ((elem->id()==60) and (side+1==2))
+			if ( ((elem->id()==60) and (side+1==2)) or 
+                 ((elem->id()==519) and (side+1==2))
+               )
 		{
 			const std::vector<std::vector<Real> >&  phi_face=fe_face->get_phi();
 			const std::vector<Real>& JxW_face = fe_face->get_JxW();
@@ -229,6 +231,7 @@ void assemble_poisson(EquationSystems& es,
 
 			Real value;
             value=1.0;
+            if (elem->id()==519) value=0.0;
 
 			for (unsigned int qp=0; qp<qface.n_points(); qp++)
 			{

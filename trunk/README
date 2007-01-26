@@ -1,13 +1,7 @@
 install
 =======
 
-cd src
-make 
-
-to clean sources:
-
-cd src
-make clean
+./make 
 
 usage
 =====
@@ -15,6 +9,9 @@ usage
 ./mesh
 ./assemble
 ./solve
+
+to clean everything
+===================
 
 ./clean
 

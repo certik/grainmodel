@@ -2,3 +2,8 @@
 
 rm -f tmp/*
 rm -f out/*
+cd doc
+./clean
+cd ..
+cd src
+make clean

@@ -15,7 +15,7 @@ T*/
      petscviewer.h - viewers               petscpc.h  - preconditioners
 */
 #include "petscksp.h"
-#include <iostream>
+#include <fstream>
 
 
 #undef __FUNCT__
@@ -44,10 +44,9 @@ int main(int argc,char **args)
     VecGetArray(x,&a);
     PetscInt n;
     VecGetSize(x,&n);
-    for (int i=0;i<n;i++) 
-    {
-        std::cout << a[i] << " ";
-    }
+    std::ofstream f(file2);
+    for (int i=0;i<n;i++)
+        f << a[i] << " ";
 
     ierr = VecDestroy(x);CHKERRQ(ierr);
 

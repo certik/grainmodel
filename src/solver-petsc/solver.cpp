@@ -27,6 +27,7 @@ int main(int argc,char **args)
   PetscViewer    fd;               /* viewer */
   char           file[PETSC_MAX_PATH_LEN];     /* input file name */
   char           file2[PETSC_MAX_PATH_LEN];     /* input file name */
+  char           file3[PETSC_MAX_PATH_LEN];     /* input file name */
   PetscErrorCode ierr,ierrp;
   PetscInt       its;
   PetscReal      norm;
@@ -38,6 +39,7 @@ int main(int argc,char **args)
 
   ierr = PetscOptionsGetString(PETSC_NULL,"-f1",file,PETSC_MAX_PATH_LEN-1,PETSC_NULL);CHKERRQ(ierr);
   ierr = PetscOptionsGetString(PETSC_NULL,"-f2",file2,PETSC_MAX_PATH_LEN-1,PETSC_NULL);CHKERRQ(ierr);
+  ierr = PetscOptionsGetString(PETSC_NULL,"-f3",file3,PETSC_MAX_PATH_LEN-1,PETSC_NULL);CHKERRQ(ierr);
 
     ierr = PetscViewerBinaryOpen(PETSC_COMM_WORLD,file,FILE_MODE_READ,&fd);CHKERRQ(ierr);
     ierr  = MatLoad(fd,MATMPIAIJ,&A);CHKERRQ(ierr);
@@ -65,6 +67,13 @@ int main(int argc,char **args)
     ierr = KSPGetIterationNumber(ksp,&its);CHKERRQ(ierr);
     ierr = PetscPrintf(PETSC_COMM_WORLD,"Number of iterations = %3D\n",its);CHKERRQ(ierr);
     ierr = PetscPrintf(PETSC_COMM_WORLD,"Residual norm %A\n",norm);CHKERRQ(ierr);
+
+
+    ierr = PetscViewerBinaryOpen(PETSC_COMM_WORLD, file3, FILE_MODE_WRITE, 
+            &fd);CHKERRQ(ierr);
+    ierr = PetscViewerSetFormat (fd, PETSC_VIEWER_BINARY_DEFAULT);CHKERRQ(ierr);
+    ierr = VecView (x, fd);CHKERRQ(ierr);
+    ierr = PetscViewerDestroy (fd);CHKERRQ(ierr);
 
     /* 
        Free work space.  All PETSc objects should be destroyed when they

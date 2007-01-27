@@ -1,5 +1,15 @@
-install
-=======
+Install libmeshpetscpackage
+===========================
+
+wajig install g77 mpich-bin libmpich1.0-dev refblas3-dev lapack3-dev
+svn checkout http://libmeshpetscpackage.googlecode.com/svn/trunk/ libmeshpetscpackage
+cd libmeshpetscpackage/
+./make
+
+install grainmodel
+==================
+
+edit src/paths to point to your libmeshpetscpackage installation.
 
 ./make 
 

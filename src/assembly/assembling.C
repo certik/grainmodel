@@ -47,20 +47,22 @@ public:
     BC(const char *fname)
     {
         std::ifstream f(fname);
-        int NN;
         f >> NN;
         nodes=new std::vector<unsigned int>[NN];
+        sides=new std::vector<unsigned int>[NN];
         for (int k=0;k<NN;k++)
         {
             int n;
             f >> n;
             int count;
             f >> count;
-            for (int j=0;j<2*count;j++)
+            for (int j=0;j<count;j++)
             {
                 int i;
                 f >> i;
                 nodes[k].push_back(i);
+                f >> i;
+                sides[k].push_back(i);
             }
         }
     }
@@ -70,22 +72,21 @@ public:
     }
     bool find(int id,int *b, int *s)
     {
-        if (id==60)
-        {
-            *b=1;
-            *s=2;
-            return true;
-        }
-        else if (id==519)
-        {
-            *b=2;
-            *s=2;
-            return true;
-        }
+        for (int k=0;k<NN;k++)
+            for (int i=0;i<nodes[k].size();i++)
+                if (nodes[k][i]==id)
+                {
+                    *b=k+1;
+                    *s=sides[k][i];
+                    std::cout << id << " " << *b << " " << *s << "|";
+                    return true;
+                }
         return false;
     }
 
+int NN;
 std::vector<unsigned int> *nodes;
+std::vector<unsigned int> *sides;
 };
 
 inline int get_local_id(const Elem *elem, int i)
@@ -278,8 +279,9 @@ void assemble_poisson(EquationSystems& es,
 			fe_face->reinit(elem, side);
 
 			Real value;
-            value=1.0;
-            if (b==2) value=0.0;
+            if (b==1) value=1.0;
+            else if (b==2) value=0.0;
+            else error()
 
 			for (unsigned int qp=0; qp<qface.n_points(); qp++)
 			{

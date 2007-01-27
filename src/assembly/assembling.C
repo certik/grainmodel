@@ -41,6 +41,53 @@
 
 extern Config config;
 
+class BC
+{
+public:
+    BC(const char *fname)
+    {
+        std::ifstream f(fname);
+        int NN;
+        f >> NN;
+        nodes=new std::vector<unsigned int>[NN];
+        for (int k=0;k<NN;k++)
+        {
+            int n;
+            f >> n;
+            int count;
+            f >> count;
+            for (int j=0;j<2*count;j++)
+            {
+                int i;
+                f >> i;
+                nodes[k].push_back(i);
+            }
+        }
+    }
+    ~BC()
+    {
+        delete nodes;
+    }
+    bool find(int id,int *b, int *s)
+    {
+        if (id==60)
+        {
+            *b=1;
+            *s=2;
+            return true;
+        }
+        else if (id==519)
+        {
+            *b=2;
+            *s=2;
+            return true;
+        }
+        return false;
+    }
+
+std::vector<unsigned int> *nodes;
+};
+
 inline int get_local_id(const Elem *elem, int i)
 {
     for (int s=0;s<elem->n_nodes();s++)
@@ -189,6 +236,7 @@ void assemble_poisson(EquationSystems& es,
     save_node_map("tmp/nodemap.libmesh", mesh);
 //	std::vector<unsigned int> zeronodes;
 //    load_zeronodes("tmp/zeronodes.gmsh", zeronodes);
+    BC bc("tmp/t12.boundaries");
 
 	MeshBase::const_element_iterator       el     = mesh.elements_begin();
 	const MeshBase::const_element_iterator end_el = mesh.elements_end();
@@ -219,10 +267,10 @@ void assemble_poisson(EquationSystems& es,
 
 		{
 		perf.start_event("Fe");
+        int b,s;
+        if (bc.find(elem->id(),&b,&s))
 		for (unsigned int side=0; side<elem->n_sides(); side++)
-			if ( ((elem->id()==60) and (side+1==2)) or 
-                 ((elem->id()==519) and (side+1==2))
-               )
+			if (side+1==s)
 		{
 			const std::vector<std::vector<Real> >&  phi_face=fe_face->get_phi();
 			const std::vector<Real>& JxW_face = fe_face->get_JxW();
@@ -231,7 +279,7 @@ void assemble_poisson(EquationSystems& es,
 
 			Real value;
             value=1.0;
-            if (elem->id()==519) value=0.0;
+            if (b==2) value=0.0;
 
 			for (unsigned int qp=0; qp<qface.n_points(); qp++)
 			{

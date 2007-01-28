@@ -1,5 +1,5 @@
 #! /bin/bash
 
-mpirun -np 1 src/solver-petsc/solver -f1 tmp/matA.petsc -f2 tmp/vecF.petsc -f3 tmp/sol.petsc
+src/solver-petsc/solver -f1 ../../tmp/matA.petsc -f2 ../../tmp/vecF.petsc -f3 ../../tmp/sol.petsc
 src/solver-petsc/convert -f1 ../../tmp/sol.petsc -f2 ../../tmp/sol.dat
 src/mesh/gmv2pos

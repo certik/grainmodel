@@ -68,7 +68,8 @@ public:
     }
     ~BC()
     {
-        delete nodes;
+        //this doesn't work - but it's not necessary after all
+        //delete nodes;
     }
     bool find(int id,int *b, int *s)
     {

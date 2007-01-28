@@ -47,7 +47,7 @@ int main (int argc, char** argv)
 		mesh_data.enable_compatibility_mode();
 
 		mesh.read("tmp/in.xda",&mesh_data);
-        //mesh.find_neighbors();
+        mesh.find_neighbors();
 		//mesh_data.read("data.xta");
 		//mesh.print_info();
 

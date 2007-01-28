@@ -73,6 +73,42 @@ public:
     }
     bool find(int id,int *b, int *s)
     {
+        if (id==60) {
+            *b=1;
+            *s=2;
+            return true;
+        }
+        if (id==93) {
+            *b=1;
+            *s=4;
+            return true;
+        }
+        if (id==197) {
+            *b=1;
+            *s=3;
+            return true;
+        }
+        if (id==203) {
+            *b=2;
+            *s=1;
+            return true;
+        }
+        if (id==214) {
+            *b=2;
+            *s=4;
+            return true;
+        }
+        if (id==216) {
+            *b=2;
+            *s=4;
+            return true;
+        }
+        if (id==234) {
+            *b=2;
+            *s=4;
+            return true;
+        }
+        return false;
         for (int k=0;k<NN;k++)
             for (int i=0;i<nodes[k].size();i++)
                 if (nodes[k][i]==id)
@@ -274,6 +310,15 @@ void assemble_poisson(EquationSystems& es,
 		for (unsigned int side=0; side<elem->n_sides(); side++)
 			if (side+1==s)
 		{
+            std::cout << b << " " << s << " "<<  elem->neighbor(side) << std::endl;
+            std::cout << elem->id() << ": ";
+            for (int i=0;i<dof_indices.size();i++)
+                std::cout << dof_indices[i] << " ";
+            std::cout << "|| ";
+            for (int i=0;i<elem->n_nodes();i++)
+                std::cout << elem->node(i) << " ";
+            std::cout << std::endl;
+            if (elem->neighbor(side) != NULL) error();
 			const std::vector<std::vector<Real> >&  phi_face=fe_face->get_phi();
 			const std::vector<Real>& JxW_face = fe_face->get_JxW();
 			const std::vector<Point >& qface_point = fe_face->get_xyz();
@@ -284,7 +329,17 @@ void assemble_poisson(EquationSystems& es,
             else if (b==2) value=0.0;
             else error()
 
-			for (unsigned int qp=0; qp<qface.n_points(); qp++)
+            const Real penalty = 1.e10;
+				for (unsigned int i=0; i<phi_face.size(); i++)
+				for (unsigned int j=0; j<phi_face.size(); j++)
+					Ke(i,j) += penalty;
+//                    Ke.print_scientific(std::cout);
+//                    std::cout << "||";
+
+				for (unsigned int i=0; i<phi_face.size(); i++)
+					Fee(i) += penalty*value;
+
+/*			for (unsigned int qp=0; qp<qface.n_points(); qp++)
 			{
 				const Real xf = qface_point[qp](0);
 				const Real yf = qface_point[qp](1);
@@ -298,6 +353,7 @@ void assemble_poisson(EquationSystems& es,
 				for (unsigned int i=0; i<phi_face.size(); i++)
 					Fee(i) += JxW_face[qp]*penalty*value*phi_face[i][qp];
 			} 
+*/
 		}
 		perf.stop_event("Fe");
         }

@@ -13,7 +13,7 @@ g=geom.read_gmsh("tmp/x.geo")
 g.printinfo()
 geom.write_tetgen(g,"tmp/t.poly")
 print "Generating mesh using tetgen..."
-geom.runtetgen("/home/ondra/femgeom/tetgen/tetgen","tmp/t.poly")
+geom.runtetgen("/home/ondra/femgeom/tetgen/tetgen","tmp/t.poly",a=0.001,Q=0.8)
 print "Reading mesh from tetgen..."
 m=geom.read_tetgen("tmp/t.1")
 m.writemsh("tmp/t12.msh")

@@ -48,7 +48,7 @@ public:
     {
         std::ifstream f(fname);
         f >> NN;
-        nodes=new std::vector<unsigned int>[NN];
+        elements=new std::vector<unsigned int>[NN];
         sides=new std::vector<unsigned int>[NN];
         for (int k=0;k<NN;k++)
         {
@@ -60,10 +60,11 @@ public:
             {
                 int i;
                 f >> i;
-                nodes[k].push_back(i);
+                elements[k].push_back(i);
                 f >> i;
                 sides[k].push_back(i);
             }
+//            std::cout << "HE:" << count << " " << elements[k].size();
         }
     }
     ~BC()
@@ -72,8 +73,10 @@ public:
         //delete nodes;
     }
     bool find(int id,int *b, int *s)
+    //beware: libmesh counts elements, nodes and sides from 0, but in this
+    //routine we count from 1.
     {
-        if (id==60) {
+/*        if (id==60) {
             *b=1;
             *s=2;
             return true;
@@ -105,24 +108,26 @@ public:
         }
         if (id==234) {
             *b=2;
-            *s=4;
+            *s=1;
             return true;
         }
         return false;
+        */
         for (int k=0;k<NN;k++)
-            for (int i=0;i<nodes[k].size();i++)
-                if (nodes[k][i]==id)
+            for (int i=0;i<elements[k].size();i++)
+                if (elements[k][i]==id)
                 {
                     *b=k+1;
                     *s=sides[k][i];
-                    std::cout << id << " " << *b << " " << *s << "|";
+//                    std::cout << id << " " << *b << " " << *s << " SS " << i <<
+//                        " " << k << " " << elements[k].size() << std::endl;
                     return true;
                 }
         return false;
     }
 
 int NN;
-std::vector<unsigned int> *nodes;
+std::vector<unsigned int> *elements;
 std::vector<unsigned int> *sides;
 };
 
@@ -306,11 +311,11 @@ void assemble_poisson(EquationSystems& es,
 		{
 		perf.start_event("Fe");
         int b,s;
-        if (bc.find(elem->id(),&b,&s))
+        if (bc.find(elem->id()+1,&b,&s))
 		for (unsigned int side=0; side<elem->n_sides(); side++)
 			if (side+1==s)
 		{
-            std::cout << b << " " << s << " "<<  elem->neighbor(side) << std::endl;
+ /*           std::cout << b << " " << s << " "<<  elem->neighbor(side) << std::endl;
             std::cout << elem->id() << ": ";
             for (int i=0;i<dof_indices.size();i++)
                 std::cout << dof_indices[i] << " ";
@@ -318,6 +323,7 @@ void assemble_poisson(EquationSystems& es,
             for (int i=0;i<elem->n_nodes();i++)
                 std::cout << elem->node(i) << " ";
             std::cout << std::endl;
+            */
             if (elem->neighbor(side) != NULL) error();
 			const std::vector<std::vector<Real> >&  phi_face=fe_face->get_phi();
 			const std::vector<Real>& JxW_face = fe_face->get_JxW();
@@ -329,7 +335,7 @@ void assemble_poisson(EquationSystems& es,
             else if (b==2) value=0.0;
             else error()
 
-            const Real penalty = 1.e10;
+/*            const Real penalty = 1.e10;
 				for (unsigned int i=0; i<phi_face.size(); i++)
 				for (unsigned int j=0; j<phi_face.size(); j++)
 					Ke(i,j) += penalty;
@@ -338,8 +344,9 @@ void assemble_poisson(EquationSystems& es,
 
 				for (unsigned int i=0; i<phi_face.size(); i++)
 					Fee(i) += penalty*value;
+                    */
 
-/*			for (unsigned int qp=0; qp<qface.n_points(); qp++)
+			for (unsigned int qp=0; qp<qface.n_points(); qp++)
 			{
 				const Real xf = qface_point[qp](0);
 				const Real yf = qface_point[qp](1);
@@ -353,7 +360,7 @@ void assemble_poisson(EquationSystems& es,
 				for (unsigned int i=0; i<phi_face.size(); i++)
 					Fee(i) += JxW_face[qp]*penalty*value*phi_face[i][qp];
 			} 
-*/
+
 		}
 		perf.stop_event("Fe");
         }

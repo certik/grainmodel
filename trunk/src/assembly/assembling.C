@@ -288,7 +288,7 @@ void assemble_poisson(EquationSystems& es,
 	{
 		perf.start_event("elem init");
 		const Elem* elem = *el;
-        if (elem->id() % 100 == 0)
+        if (elem->id() % 10000 == 0)
             std::cout << 100.0*elem->id()/mesh.n_elem() << "%" << std::endl;
 		dof_map.dof_indices (elem, dof_indices);
 		fe->reinit (elem);

@@ -15,32 +15,42 @@ http://www.wias-berlin.de/project-areas/micro-el/power/index.html.en
 \section{Weak Formulation of the Poisson Equation}
 
 The Poisson equation is:
-$$\nabla\cdot\lambda\nabla\varphi=-f$$
-and the corresponding weak formulation is
+$$\nabla\cdot\lambda\nabla\varphi=-f\no{poisson}$$
+Usual procedure of solving such equations is to
+multiply the equation with a test function $v$ and integrate over some
+volume:
+$$\int\nabla\cdot\lambda\nabla\varphi v \d V=-\int f v \d V\no{sim}$$
+The problem reads: find a function $\varphi$ such that \rno{sim} holds for every
+$v$. We then choose a basis $\phi_i$ (doesn't have to be normalized or
+orthogonal) and expand $\varphi=\sum_j q_j \phi_j$ and set $v=\phi_i$:
+$$\int\nabla\cdot\lambda\nabla\phi_j\phi_i \d V \, q_j=
+-\int f \phi_i \d V\no{sim2}$$
+which is of the form
+$Aq=F$, but it has the disadvantage that the matrix $A$ is not symmetric
+(solving is more difficult) and second that the basis $\phi_i$ needs to have
+nonzero second derivatives (otherwise the matrix $A$ would vanish). Thus it is
+convenient to rewrite \rno{sim} into this form (using the identity
+$(\nabla\cdot\lambda\nabla u)v=-\lambda\nabla u \cdot \nabla v+
+\nabla\cdot(\lambda v\nabla u)$
+and Gauss theorem):
 $$\int\lambda\nabla\varphi\cdot\nabla v\,\d V= \int fv\,\d V+
 \oint\lambda{\d\varphi\over\d n}v\,\d S\,,\no{w}$$
-where ${\d\varphi\over\d n}\equiv\nabla\varphi\cdot{\bf n}$
-The problem reads: find a function $\varphi$ such that \rno{w} holds for every
-$v$.
-
+where ${\d\varphi\over\d n}\equiv\nabla\varphi\cdot{\bf n}$. This is called
+the weak formulation. In the basis $\phi_i$:
+$$\int\lambda\nabla\phi_j\cdot\nabla \phi_i\,\d V\,q_j= \int f\phi_i\,\d V+
+\oint\lambda{\d\varphi\over\d n}\phi_i\,\d S\,,\no{w2}$$
+Mathematicians are used to saying that \rno{w} is more general than
+\rno{poisson} or \rno{sim}, but this is of course not correct.
 
 \section{Finite Elements}
 
-We choose a basis $\phi_i$ and substitute $\phi_i$ for $v$ and expand
-$\psi=\sum q_j\phi_j$
-$$\left(\int{\hbar^2\over2m}\nabla\phi_j\cdot\nabla\phi_i\,\d V+
-\int\phi_iV\phi_j\,\d V\right)q_j
-=
-\left(\int E\phi_j\phi_i\,\d V\right)q_j
-+\oint{\hbar^2\over2m}{\d\psi\over\d n}\phi_i\,\d S\,,\no{fem}$$
+We start with the \rno{w2},
 which can be written in a matrix form
-$$\left(K_{ij}+V_{ij}\right)q_j=EM_{ij}q_j+F_i\,,$$
+$$K_{ij}q_j=F_i\,,$$
 where
 $$\eqalign{
-V_{ij}&=\int\phi_iV\phi_j\,\d V\,,\cr
-M_{ij}&=\int\phi_i\phi_j\,\d V\,,\cr
-K_{ij}&={\hbar^2\over2m}\int\nabla\phi_i\cdot\nabla\phi_j\,\d V\,,\cr
-F_i&={\hbar^2\over2m}\oint{\d\psi\over\d n}\phi_i\,\d S\,.\cr
+K_{ij}&=\int\lambda\nabla\phi_i\cdot\nabla\phi_j\,\d V\,,\cr
+F_i&=\int f\phi_i\,\d V+\oint\lambda{\d\varphi\over\d n}\phi_i\,\d S\,.\cr
 }$$
 Usually we set $F_i=0$.
 
@@ -49,8 +59,8 @@ elements. For example:
 $$K_{ij}=\sum_{E\in elements} K_{ij}^E$$
 where $K_{ij}^E$ is the integral over one element only
 $$
-K_{ij}^{E}=\int{\hbar^2\over2m}\nabla\phi_j\cdot\nabla\phi_i\,\d V^{E}\approx
-\sum_{q=0}^{N_q-1}{\hbar^2\over2m}\,\nabla\phi_i(x_q)\cdot\nabla\phi_j(x_q)\,
+K_{ij}^{E}=\int\lambda\nabla\phi_i\cdot\nabla\phi_j\,\d V^{E}\approx
+\sum_{q=0}^{N_q-1}\lambda\nabla\phi_i(x_q)\cdot\nabla\phi_j(x_q)\,
 w_q|\det J(\hat x_q)|\,.
 $$
 The integral is computed numerically using a Gauss integration: $x_q$ are Gauss
@@ -58,4 +68,31 @@ points (there are $N_q$ of them), $w_q$ is the weight of each point, and the
 Jacobian $|\det J(\hat x_q)|$ is there because we are actually computing the
 integral on the reference element instead in the real space.
 
-The surface integrals are computed similarly.
+The surface integral in $F_i$ is decomposed as a sum over boundary element
+faces and computed using a 2D Gauss point integration.
+
+\section{Boundary Conditions}
+
+The Neumann boundary condition means to impose some condition on the normal
+derivative of the solution on the boundary, which is achieved by setting
+${\d\varphi\over\d n}$ in the surface integral
+$\oint\lambda{\d\varphi\over\d n}\phi_i\,\d S$.
+
+The Dirichlet boundary condition means to impose a condition $q_i=
+u_0({\bf r}_i)$ where
+$u_0({\bf r}_i)$ is the value of solution at the boundary at the position 
+${\bf f}_i$ of
+the $i$th node. This in theory could be achieved by setting
+$K_{ij}=\delta_{ij}$ and $F_i=u_0$ (for all $i$ and $j$ in the $i$th row and
+$i$th column), but it would be necessary to set the whole whole row and column
+to $0$ (and $K_{ii}=1$).
+So in practice we use an effectively equivalent procedure: we only set
+$K_{ii}=P$, $F_i=u_0 P$, for some sufficiently large number $P$ (penalty).
+
+Another effectively equaivalent procedure is to add the following equation 
+to \rno{w2}:
+$$P\int\phi_i\phi_j\d S q_j = P\int u_0({\bf r}) \phi_i\d S$$
+This equation is used for all $i$ and $j$ of elements we want to impose the
+Dirichlet BC. This way allows us to impose the Dirichlet BC on the whole
+element face, with contrast to the above procedure, which only set the
+condition to some nodes.

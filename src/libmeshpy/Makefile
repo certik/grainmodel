@@ -3,7 +3,7 @@ WRAPPERS   = $(INTERFACES:.i=_wrap.cxx)
 PROXIES    = $(INTERFACES:.i=.py      )
 
 all: $(WRAPPERS) series.cxx series.h
-	CXX=mpiCC CC=mpiCC ./setup.py build
+	./setup.py build
 
 %_wrap.cxx: %.i numpy.i series.h
 	swig -c++ -python $<

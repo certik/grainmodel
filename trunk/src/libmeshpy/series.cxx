@@ -21,11 +21,11 @@ void mesh()
     std::cout << "hello" << std::endl;
 
     int argc=1;
-    char n[10]="lmesh";
-    char *p=n;
+    char *p="./lmesh\n";
     char **argv=&p;
+    std::cout << argv[0];
     //this aborts the program
-    libMesh::init (argc, argv,0);
+    libMesh::init (argc, argv);
 /*    {    
         const unsigned int dim = 3;
         Mesh mesh(dim);

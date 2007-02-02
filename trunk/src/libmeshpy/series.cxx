@@ -20,17 +20,20 @@ void mesh()
 {
     std::cout << "hello" << std::endl;
 
-    int argc=0;
-    char **argv=NULL;
-    libMesh::init (argc, argv);
-    {    
+    int argc=1;
+    char n[10]="lmesh";
+    char *p=n;
+    char **argv=&p;
+    //this aborts the program
+    libMesh::init (argc, argv,0);
+/*    {    
         const unsigned int dim = 3;
         Mesh mesh(dim);
         //mesh.read (argv[3]);
         mesh.print_info();
         //mesh.write (argv[4]);
     }
-    libMesh::close();
+    libMesh::close();*/
 }
 
 

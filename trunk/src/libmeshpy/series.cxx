@@ -26,14 +26,14 @@ void mesh()
     std::cout << argv[0];
     //this aborts the program
     libMesh::init (argc, argv);
-/*    {    
+    {    
         const unsigned int dim = 3;
         Mesh mesh(dim);
         //mesh.read (argv[3]);
         mesh.print_info();
         //mesh.write (argv[4]);
     }
-    libMesh::close();*/
+    libMesh::close();
 }
 
 

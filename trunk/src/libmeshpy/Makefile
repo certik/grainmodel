@@ -1,11 +1,11 @@
-INTERFACES = Series.i
+INTERFACES = libmesh_mod.i
 WRAPPERS   = $(INTERFACES:.i=_wrap.cxx)
 PROXIES    = $(INTERFACES:.i=.py      )
 
-all: $(WRAPPERS) series.cxx series.h
+all: $(WRAPPERS) libmesh_mod.cxx libmesh_mod.h
 	./setup.py build
 
-%_wrap.cxx: %.i numpy.i series.h
+%_wrap.cxx: %.i numpy.i libmesh_mod.h
 	swig -c++ -python $<
 
 clean:

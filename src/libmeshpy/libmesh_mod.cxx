@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include <math.h>
 #include <iostream>
-#include "series.h"
+#include "libmesh_mod.h"
 
 double doubleSum(double* series, int size) {
   double result = 0.0;

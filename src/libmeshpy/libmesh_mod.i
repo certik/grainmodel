@@ -1,8 +1,8 @@
-%module Series
+%module libmeshpy
 
 %{
 #define SWIG_FILE_WITH_INIT
-#include "series.h"
+#include "libmesh_mod.h"
 %}
 
 /* Get the Numeric typemaps */
@@ -28,4 +28,4 @@
 %apply (double* INPLACE_ARRAY1, int DIM1) {(double* array,   int size)};
 
 /* Include the header file to be wrapped */
-%include "series.h"
+%include "libmesh_mod.h"

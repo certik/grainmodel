@@ -2,7 +2,7 @@
 
 %{
 #define SWIG_FILE_WITH_INIT
-#include "libmesh_mod.h"
+#include "libmeshpy.h"
 %}
 
 /* Get the Numeric typemaps */
@@ -28,4 +28,4 @@
 %apply (double* INPLACE_ARRAY1, int DIM1) {(double* array,   int size)};
 
 /* Include the header file to be wrapped */
-%include "libmesh_mod.h"
+%include "libmeshpy.h"

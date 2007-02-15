@@ -27,6 +27,8 @@ input is the geometry in mesh/t.geo
 
 output is the solution in tmp/sol.pos
 
+./show
+
 to clean everything
 ===================
 

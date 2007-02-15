@@ -14,15 +14,12 @@ lib="/home/ondra/libmeshpetscpackage/libs/libmesh2"
 libmesh=os.path.dirname(glob.glob(lib+"/lib/*/libmesh.so")[0])
 libmesh_contrib=os.path.dirname(glob.glob(lib+
     "/contrib/lib/*/liblaspack.so")[0])
+libmesh_inc=glob.glob(lib+"/include/*")
 libpaths=[libmesh,libmesh_contrib]
 _Series = Extension("_Series",
                     ["Series_wrap.cxx",
                      "series.cxx"],
-                    include_dirs = [numpy.get_include(),
-                        lib+"/include/base",
-                        lib+"/include/utils",
-                        lib+"/include/enums",
-                        lib+"/include/mesh"],
+                    include_dirs = [numpy.get_include()]+libmesh_inc,
                     library_dirs=libpaths,
                     runtime_library_dirs=libpaths,
                     libraries = ["mesh","laspack"]

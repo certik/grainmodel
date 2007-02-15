@@ -17,8 +17,8 @@ libmesh_contrib=os.path.dirname(glob.glob(lib+
 libmesh_inc=glob.glob(lib+"/include/*")
 libpaths=[libmesh,libmesh_contrib]
 _Series = Extension("_libmeshpy",
-                    ["libmesh_mod_wrap.cxx",
-                     "libmesh_mod.cxx"],
+                    ["libmeshpy_wrap.cxx",
+                     "libmeshpy.cxx"],
                     include_dirs = [numpy.get_include()]+libmesh_inc,
                     library_dirs=libpaths,
                     runtime_library_dirs=libpaths,

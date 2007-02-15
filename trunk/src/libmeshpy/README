@@ -1,3 +1,4 @@
 install python-dev
 
 make
+./testlibmesh

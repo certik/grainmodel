@@ -14,21 +14,7 @@ void doubleOnes(double* array, int size) {
 }
 
 #include "libmesh.h"
-#include "mesh.h"
 
-void mesh()
-{
-    std::cout << "starting..." << std::endl;
-
-    int argc=1; char *p="./lmesh\n"; char **argv=&p;
-    libMesh::init (argc, argv);
-    {    
-        Mesh mesh(3);
-        mesh.read("../../tmp/in.xda");
-        mesh.print_info();
-    }
-    libMesh::close();
-}
 
 #include <fstream>
 
@@ -291,12 +277,12 @@ void assemble_poisson(EquationSystems& es,
     std::cout << "nodes: " << mesh.n_nodes() << "; elements: " 
         << mesh.n_elem() << std::endl;
 
-    std::ofstream f("tmp/matrices.dat");
-    std::ofstream ftopo("tmp/topo.dat");
-    save_node_map("tmp/nodemap.libmesh", mesh);
+    std::ofstream f("../../tmp/matrices.dat");
+    std::ofstream ftopo("../../tmp/topo.dat");
+    save_node_map("../../tmp/nodemap.libmesh", mesh);
 //	std::vector<unsigned int> zeronodes;
 //    load_zeronodes("tmp/zeronodes.gmsh", zeronodes);
-    BC bc("tmp/t12.boundaries");
+    BC bc("../../tmp/t12.boundaries");
 
 	MeshBase::const_element_iterator       el     = mesh.elements_begin();
 	const MeshBase::const_element_iterator end_el = mesh.elements_end();
@@ -409,5 +395,29 @@ void assemble_poisson(EquationSystems& es,
     //matrix_A.print_matlab("tmp/matA.matlab");
     //matrix_B.print_matlab("tmp/matM.matlab");
 //    if (!config.printlog) perf.clear();
+    perf.clear();
     std::cout << "done." << std::endl;
+}
+
+void mesh()
+{
+    std::cout << "starting..." << std::endl;
+
+    int argc=1; char *p="./lmesh\n"; char **argv=&p;
+    libMesh::init (argc, argv);
+    {    
+        Mesh mesh(3);
+        mesh.read("../../tmp/in.xda");
+        mesh.find_neighbors();
+        mesh.print_info();
+        EquationSystems equation_systems (mesh);
+        LinearImplicitSystem & eigen_system =
+            equation_systems.add_system<LinearImplicitSystem> ("Poisson");
+        equation_systems.get_system("Poisson").add_variable("u", FIRST);
+        equation_systems.get_system("Poisson").attach_assemble_function
+            (assemble_poisson);
+        equation_systems.init();
+        assemble_poisson(equation_systems, "Poisson");
+    }
+    libMesh::close();
 }

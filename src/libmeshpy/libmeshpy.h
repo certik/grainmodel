@@ -4,6 +4,6 @@
 double doubleSum( double* series, int size);
 void doubleOnes(  double* array, int size);
 
-void mesh();
+void mesh(const std::string& meshfile);
 
 #endif

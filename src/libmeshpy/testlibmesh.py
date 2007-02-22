@@ -16,6 +16,6 @@ myArray = N.zeros(5,'d')
 libmeshpy.doubleOnes(myArray)
 print myArray, N.array([1.,1.,1.,1.,1.])
 
-libmeshpy.mesh()
+libmeshpy.mesh("../../tmp/in.xda")
 
 print "ok, we are done."

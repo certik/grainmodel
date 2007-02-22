@@ -42,6 +42,11 @@ void doubleOnes(double* array, int size) {
 
 //extern Config config;
 
+void save_matrix(std::ostream& f, DenseMatrix<Number>& M)
+{
+    M.print_scientific(f);
+}
+
 class BC
 {
 public:
@@ -73,7 +78,7 @@ public:
         //this doesn't work - but it's not necessary after all
         //delete nodes;
     }
-    bool find(int id,int *b, int *s)
+    bool find(unsigned int id,int *b, int *s)
     //beware: libmesh counts elements, nodes and sides from 0, but in this
     //routine we count from 1.
     {
@@ -115,7 +120,7 @@ public:
         return false;
         */
         for (int k=0;k<NN;k++)
-            for (int i=0;i<elements[k].size();i++)
+            for (unsigned int i=0;i<elements[k].size();i++)
                 if (elements[k][i]==id)
                 {
                     *b=k+1;
@@ -132,18 +137,41 @@ std::vector<unsigned int> *elements;
 std::vector<unsigned int> *sides;
 };
 
-inline int get_local_id(const Elem *elem, int i)
+class matrices
+//currently Ax=F
+//supports construction of A and F
 {
-    for (int s=0;s<elem->n_nodes();s++)
+    public:
+        matrices(const char *fname)
+        {
+            f=new std::ofstream(fname);
+        }
+        ~matrices()
+        {
+            delete f;
+        }
+        void addtoA(DenseMatrix<Number> Ae,
+                std::vector<unsigned int>& dof_indices)
+        {
+//            save_matrix(*f,Ae);
+//            *f << dof_indices;
+        }
+        void addtoF(DenseVector<Number> Fe,
+                std::vector<unsigned int>& dof_indices)
+        {
+        }
+    private:
+        std::ofstream *f;
+};
+
+inline int get_local_id(const Elem *elem, unsigned int i)
+{
+    for (unsigned int s=0;s<elem->n_nodes();s++)
         if (elem->node(s)==i) return s;
     std::cout << "node " << i << " not found in elem!" << std::endl;
     error();
 }
 
-void save_matrix(std::ostream& f, DenseMatrix<Number>& M)
-{
-    M.print_scientific(f);
-}
 
 void save_vector(NumericVector<Number>& M, const char *fname)
 {
@@ -201,17 +229,19 @@ void save_sparse_matrix(SparseMatrix<Number>& M, const char *fname)
     */
 }
 
+
+
 void save_elem(std::ostream& f, const Elem* el,
         std::vector<unsigned int>& dof_indices)
 {
     f << el->id() << ": ";
     //indices in the global matrix
-    for (int i=0;i<dof_indices.size();i++)
+    for (unsigned int i=0;i<dof_indices.size();i++)
         //the same as: el->get_node(i)->dof_number(0,0,0)
         f << dof_indices[i] << " ";
     f << "|| ";
     //original node numbers
-    for (int i=0;i<el->n_nodes();i++)
+    for (unsigned int i=0;i<el->n_nodes();i++)
         f << el->node(i) << " ";
     f << std::endl;
 }
@@ -220,7 +250,7 @@ void save_elem(std::ostream& f, const Elem* el,
 void save_node_map(const char* fname, const Mesh& mesh)
 {
     std::ofstream f(fname);
-    for (int i=0;i<mesh.n_nodes();i++)
+    for (unsigned int i=0;i<mesh.n_nodes();i++)
         f<<mesh.node(i).dof_number(0,0,0) << " ";
     f << std::endl;
 }
@@ -236,15 +266,12 @@ void load_zeronodes(const char* fname, std::vector<unsigned int>& nodes)
     }
 }
 
-void assemble_poisson(EquationSystems& es,
-                      const std::string& system_name)
+void assemble_poisson(EquationSystems& es)
 {
-	assert (system_name == "Poisson");
-
     std::cout << "assembling..." << std::endl;
 	PerfLog perf("Matrix Assembly");
 	const Mesh& mesh = es.get_mesh();
-	const MeshData& mesh_data = es.get_mesh_data();
+//	const MeshData& mesh_data = es.get_mesh_data();
 	const unsigned int dim = mesh.mesh_dimension();
 	LinearImplicitSystem& system=es.get_system<LinearImplicitSystem>("Poisson");
 	const DofMap& dof_map = system.get_dof_map();
@@ -256,7 +283,7 @@ void assemble_poisson(EquationSystems& es,
 	QGauss qface(dim-1, FIFTH);
 	fe_face->attach_quadrature_rule (&qface);
 	const std::vector<Real>& JxW = fe->get_JxW();
-	const std::vector<Point>& q_point = fe->get_xyz();
+//	const std::vector<Point>& q_point = fe->get_xyz();
 	const std::vector<std::vector<Real> >& phi = fe->get_phi();
 	const std::vector<std::vector<RealGradient> >& dphi = fe->get_dphi();
 
@@ -283,6 +310,7 @@ void assemble_poisson(EquationSystems& es,
 //	std::vector<unsigned int> zeronodes;
 //    load_zeronodes("tmp/zeronodes.gmsh", zeronodes);
     BC bc("../../tmp/t12.boundaries");
+    matrices mymatrices("../../tmp/matrices");
 
 	MeshBase::const_element_iterator       el     = mesh.elements_begin();
 	const MeshBase::const_element_iterator end_el = mesh.elements_end();
@@ -316,7 +344,7 @@ void assemble_poisson(EquationSystems& es,
         int b,s;
         if (bc.find(elem->id()+1,&b,&s))
 		for (unsigned int side=0; side<elem->n_sides(); side++)
-			if (side+1==s)
+			if (side+1==(unsigned int)s)
 		{
  /*           std::cout << b << " " << s << " "<<  elem->neighbor(side) << std::endl;
             std::cout << elem->id() << ": ";
@@ -330,7 +358,7 @@ void assemble_poisson(EquationSystems& es,
             if (elem->neighbor(side) != NULL) error();
 			const std::vector<std::vector<Real> >&  phi_face=fe_face->get_phi();
 			const std::vector<Real>& JxW_face = fe_face->get_JxW();
-			const std::vector<Point >& qface_point = fe_face->get_xyz();
+//			const std::vector<Point >& qface_point = fe_face->get_xyz();
 			fe_face->reinit(elem, side);
 
 			Real value;
@@ -351,8 +379,8 @@ void assemble_poisson(EquationSystems& es,
 
 			for (unsigned int qp=0; qp<qface.n_points(); qp++)
 			{
-				const Real xf = qface_point[qp](0);
-				const Real yf = qface_point[qp](1);
+//				const Real xf = qface_point[qp](0);
+//				const Real yf = qface_point[qp](1);
 				const Real penalty = 1.e10;
 
 				for (unsigned int i=0; i<phi_face.size(); i++)
@@ -370,8 +398,8 @@ void assemble_poisson(EquationSystems& es,
 
 		perf.start_event("matrix insertion");
 
-//        matrix_A.add_matrix (Ke, dof_indices);
-//        vector_F.add_vector (Fee, dof_indices);
+        mymatrices.addtoA(Ke,dof_indices);
+        mymatrices.addtoF(Fee,dof_indices);
 		perf.stop_event("matrix insertion");
 	} //for element
 
@@ -399,7 +427,7 @@ void assemble_poisson(EquationSystems& es,
     std::cout << "done." << std::endl;
 }
 
-void mesh()
+void mesh(const std::string& meshfile)
 {
     std::cout << "starting..." << std::endl;
 
@@ -407,17 +435,14 @@ void mesh()
     libMesh::init (argc, argv);
     {    
         Mesh mesh(3);
-        mesh.read("../../tmp/in.xda");
+        mesh.read(meshfile);
         mesh.find_neighbors();
         mesh.print_info();
         EquationSystems equation_systems (mesh);
-        LinearImplicitSystem & eigen_system =
-            equation_systems.add_system<LinearImplicitSystem> ("Poisson");
+        equation_systems.add_system<LinearImplicitSystem> ("Poisson");
         equation_systems.get_system("Poisson").add_variable("u", FIRST);
-        equation_systems.get_system("Poisson").attach_assemble_function
-            (assemble_poisson);
         equation_systems.init();
-        assemble_poisson(equation_systems, "Poisson");
+        assemble_poisson(equation_systems);
     }
     libMesh::close();
 }

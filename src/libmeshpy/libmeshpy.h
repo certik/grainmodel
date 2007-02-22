@@ -6,4 +6,18 @@ void doubleOnes(  double* array, int size);
 
 void mesh(const std::string& meshfile);
 
+class loadmatrices
+//currently Ax=F
+//supports loading A and F from a file
+{
+    public:
+        loadmatrices(const std::string& fname);
+        ~loadmatrices();
+        double readfloat();
+        unsigned int readint();
+    private:
+        std::ifstream *f;
+};
+
+
 #endif

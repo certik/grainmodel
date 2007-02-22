@@ -17,3 +17,5 @@ libmeshpy.doubleOnes(myArray)
 print myArray, N.array([1.,1.,1.,1.,1.])
 
 libmeshpy.mesh()
+
+print "ok, we are done."

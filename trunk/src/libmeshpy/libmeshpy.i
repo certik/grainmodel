@@ -5,6 +5,8 @@
 #include "libmeshpy.h"
 %}
 
+%include "std_string.i"
+
 /* Get the Numeric typemaps */
 %include "numpy.i"
 

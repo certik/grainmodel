@@ -2,3 +2,9 @@ install python-dev
 
 make
 ./testlibmesh
+
+
+
+--------
+now implement printing of vectors in C and compare. The same for the matrix.
+find out differences. 

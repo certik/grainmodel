@@ -55,7 +55,7 @@ class system:
         n=l.loadsize()
         widgets=['Assembling: ', progressbar.Percentage(), ' ', 
                 progressbar.Bar(), ' ', progressbar.ETA()]
-        self.pbar=progressbar.ProgressBar(widgets=widgets,maxval=n).start()
+        self.pbar=progressbar.ProgressBar(widgets=widgets,maxval=n-1).start()
 
         self.A=Mat()
         self.A.create()
@@ -67,14 +67,14 @@ class system:
             l.loadindices()
             Fe=l.loadvector()
             indices=l.loadindices()
-            self.A.setValues(indices,indices,Ae)
-            self.b.setValues(indices,Fe)
+#            self.A.setValues(indices,indices,Ae)
+#            self.b.setValues(indices,Fe)
             self.pbar.update(i)
 
-        self.A.assemble()
+#        self.A.assemble()
         #temporary
-#        self.b.setRandom()
-#        self.A.diagonalSet(self.b)
+        self.b.setRandom()
+        self.A.diagonalSet(self.b)
     def solve(self):
         ksp = KSP()
         ksp.create()

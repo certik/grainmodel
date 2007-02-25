@@ -47,27 +47,28 @@ class load:
             x[i]=self.m.readfloat()
         return x
     def loadsize(self):
-        return self.m.readint()
+        return self.m.readint(),self.m.readint()
 
 class system:
     def load(self,fname):
         l=load(fname)
-        n=l.loadsize()
-        print "elements:",n
+        nn,ne=l.loadsize()
+        print "nodes:",nn
+        print "elements:",ne
         widgets=['Assembling: ', progressbar.Percentage(), ' ', 
                 progressbar.Bar(), ' ', progressbar.ETA()]
-        self.pbar=progressbar.ProgressBar(widgets=widgets,maxval=n-1).start()
+        self.pbar=progressbar.ProgressBar(widgets=widgets,maxval=ne-1).start()
 
         #IM=InsertMode.INSERT_VALUES
         IM=InsertMode.ADD_VALUES
 
         self.A=Mat()
         self.A.create()
-        self.A.setSizes(n)
+        self.A.setSizes(nn)
         self.A.setFromOptions()
         self.x,self.b=self.A.getVecs()
         self.b.zeroEntries()
-        for i in range(n):
+        for i in range(ne):
             Ae=l.loadmatrix()
             l.loadindices()
             Fe=l.loadvector()
@@ -77,6 +78,7 @@ class system:
             self.b.setValues(indices,Fe,IM)
             self.pbar.update(i)
 
+#        self.A.setValues([5264],[5264],1.0,IM)
         self.A.assemble()
         #temporary
 #        self.b.setRandom()
@@ -92,15 +94,5 @@ s=system()
 s.load("../../tmp/matrices")
 print "solve"
 s.solve()
-#print s.x.view()
-#for i,a in enumerate(s.b):
-#    if a!=0.0:
-#        print i,":",a
-
-#print len(s.b)
-#print "%g"%s.b.norm()
-#for a in s.b[4000:]:
-#    print a,
-#print
 
 print "ok, we are done."

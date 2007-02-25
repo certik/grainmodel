@@ -95,4 +95,9 @@ s.load("../../tmp/matrices")
 print "solve"
 s.solve()
 
+print "saving"
+f=open("../../tmp/sol.dat","w")
+for a in s.x.getValues(range(len(s.x))):
+    f.write("%f "%a)
+
 print "ok, we are done."

@@ -164,9 +164,10 @@ class matrices
         {
             delete f;
         }
-        void setsize(int n)
+        void setsize(int nn, int ne)
         {
-            write_int(*f,n);
+            write_int(*f,nn);
+            write_int(*f,ne);
         }
         void addtoA(DenseMatrix<Number> Ae,
                 std::vector<unsigned int>& dof_indices)
@@ -265,7 +266,7 @@ void assemble_poisson(EquationSystems& es)
 //    load_zeronodes("tmp/zeronodes.gmsh", zeronodes);
     BC bc("../../tmp/t12.boundaries");
     matrices mymatrices("../../tmp/matrices");
-    mymatrices.setsize(mesh.n_elem());
+    mymatrices.setsize(mesh.n_nodes(),mesh.n_elem());
 
 	MeshBase::const_element_iterator       el     = mesh.elements_begin();
 	const MeshBase::const_element_iterator end_el = mesh.elements_end();

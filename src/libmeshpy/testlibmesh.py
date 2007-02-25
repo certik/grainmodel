@@ -13,7 +13,7 @@ sys.path.append(os.path.join("/home/ondra/libmeshpetscpackage/libs/petsc4py",
     libdir))
 import petsc4py
 petsc4py.init(sys.argv,"linux")
-from petsc4py.PETSc import Mat, KSP
+from petsc4py.PETSc import Mat, KSP, InsertMode
 
 
 import progressbar
@@ -53,9 +53,13 @@ class system:
     def load(self,fname):
         l=load(fname)
         n=l.loadsize()
+        print "elements:",n
         widgets=['Assembling: ', progressbar.Percentage(), ' ', 
                 progressbar.Bar(), ' ', progressbar.ETA()]
         self.pbar=progressbar.ProgressBar(widgets=widgets,maxval=n-1).start()
+
+        #IM=InsertMode.INSERT_VALUES
+        IM=InsertMode.ADD_VALUES
 
         self.A=Mat()
         self.A.create()
@@ -67,14 +71,14 @@ class system:
             l.loadindices()
             Fe=l.loadvector()
             indices=l.loadindices()
-#            self.A.setValues(indices,indices,Ae)
-#            self.b.setValues(indices,Fe)
+#            self.A.setValues(indices,indices,Ae,IM)
+            self.b.setValues(indices,Fe,IM)
             self.pbar.update(i)
 
-#        self.A.assemble()
+        self.A.assemble()
         #temporary
-        self.b.setRandom()
-        self.A.diagonalSet(self.b)
+#        self.b.setRandom()
+#        self.A.diagonalSet(self.b)
     def solve(self):
         ksp = KSP()
         ksp.create()
@@ -85,7 +89,10 @@ class system:
 s=system()
 s.load("../../tmp/matrices")
 print "solve"
-s.solve()
+#s.solve()
 #print s.x.view()
+for i,a in enumerate(s.b):
+    if a!=0.0:
+        print i,":",a
 
 print "ok, we are done."

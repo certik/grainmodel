@@ -46,7 +46,7 @@ objects		:= $(patsubst %.C, %.$(obj-suffix), $(srcfiles))
 # Production rules:  how to make the target - depends on library configuration
 $(target): $(objects)
 	@echo "Linking "$@"..."
-	@$(CXX) $(CXXFLAGS) $(objects) -o $@ $(LIBS) $(LDFLAGS)
+	$(CXX) $(CXXFLAGS) $(objects) -o $@ $(LIBS) $(LDFLAGS)
 
 
 # Useful rules.

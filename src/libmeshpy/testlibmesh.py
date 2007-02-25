@@ -66,12 +66,14 @@ class system:
         self.A.setSizes(n)
         self.A.setFromOptions()
         self.x,self.b=self.A.getVecs()
+        self.b.zeroEntries()
         for i in range(n):
             Ae=l.loadmatrix()
             l.loadindices()
             Fe=l.loadvector()
             indices=l.loadindices()
-#            self.A.setValues(indices,indices,Ae,IM)
+            self.A.setValues(indices,indices,Ae,IM)
+#            print indices
             self.b.setValues(indices,Fe,IM)
             self.pbar.update(i)
 
@@ -89,10 +91,16 @@ class system:
 s=system()
 s.load("../../tmp/matrices")
 print "solve"
-#s.solve()
+s.solve()
 #print s.x.view()
-for i,a in enumerate(s.b):
-    if a!=0.0:
-        print i,":",a
+#for i,a in enumerate(s.b):
+#    if a!=0.0:
+#        print i,":",a
+
+#print len(s.b)
+#print "%g"%s.b.norm()
+#for a in s.b[4000:]:
+#    print a,
+#print
 
 print "ok, we are done."

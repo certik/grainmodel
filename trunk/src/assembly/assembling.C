@@ -131,6 +131,12 @@ std::vector<unsigned int> *elements;
 std::vector<unsigned int> *sides;
 };
 
+inline double absd(double d)
+{
+    if (d>0) return d;
+    else return -d;
+}
+
 inline int get_local_id(const Elem *elem, int i)
 {
     for (int s=0;s<elem->n_nodes();s++)
@@ -369,6 +375,10 @@ void assemble_poisson(EquationSystems& es,
 
         matrix_A.add_matrix (Ke, dof_indices);
         vector_F.add_vector (Fee, dof_indices);
+//        for (int i=0;i<dof_indices.size();i++)
+//            std::cout << dof_indices[i] << " ";
+//        std::cout << std::endl;
+
 		perf.stop_event("matrix insertion");
 	} //for element
 
@@ -393,4 +403,10 @@ void assemble_poisson(EquationSystems& es,
     //matrix_B.print_matlab("tmp/matM.matlab");
     if (!config.printlog) perf.clear();
     std::cout << "done." << std::endl;
+/*    for (int i=0;i<mesh.n_elem();i++)
+    {
+        double v=vector_F(i);
+        if (absd(v)>1e-10) std::cout << i << " : " << v << std::endl;
+    }*/
+    std::cout << vector_F.l1_norm() << " " << vector_F.l2_norm() << std::endl;
 }

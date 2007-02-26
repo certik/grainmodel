@@ -94,6 +94,9 @@ x = s.x.getArray()
 g = numpy.zeros(s.nele,'d')
 libmeshpy.grad("../../tmp/in.xda",x,g)
 
+print "integrating"
+print "integ=", libmeshpy.integ("../../tmp/in.xda",g)
+
 print "saving"
 import tables
 h5=tables.openFile("../../tmp/sol.h5",mode="w",title="Test")

@@ -386,3 +386,88 @@ void grad(const std::string& meshfile, double* x, int xsize,
     }
     libMesh::close();
 }
+
+double integ(const std::string& meshfile, double* x, int xsize) 
+{
+    std::cout << "starting..." << std::endl;
+    double S=0.0;
+
+    int argc=1; char *p="./lmesh\n"; char **argv=&p;
+    libMesh::init (argc, argv);
+    {    
+        Mesh mesh(3);
+        mesh.read(meshfile);
+        mesh.find_neighbors();
+        EquationSystems equation_systems (mesh);
+        equation_systems.add_system<LinearImplicitSystem> ("Poisson");
+        equation_systems.get_system("Poisson").add_variable("u", FIRST);
+        equation_systems.init();
+        
+
+    std::cout << "computing gradient..." << std::endl;
+	const unsigned int dim = mesh.mesh_dimension();
+	LinearImplicitSystem& system=equation_systems.get_system<LinearImplicitSystem>("Poisson");
+	const DofMap& dof_map = system.get_dof_map();
+	FEType fe_type = dof_map.variable_type(0);
+	AutoPtr<FEBase> fe (FEBase::build(dim, fe_type));
+	QGauss qrule (dim, FIFTH);
+	fe->attach_quadrature_rule (&qrule);
+	AutoPtr<FEBase> fe_face (FEBase::build(dim, fe_type));
+	QGauss qface(dim-1, FIFTH);
+	fe_face->attach_quadrature_rule (&qface);
+
+	DenseMatrix<Number> Ke;
+	DenseVector<Number> Fee;
+	std::vector<unsigned int> dof_indices;
+
+    BC bc("../../tmp/t12.boundaries");
+
+    QGauss qquad(2,FIFTH);
+    qquad.init(QUAD4);
+
+	MeshBase::const_element_iterator       el     = mesh.elements_begin();
+	const MeshBase::const_element_iterator end_el = mesh.elements_end();
+    std::cout << "Start" << std::endl;
+	for ( ; el != end_el ; ++el)
+	{
+		const Elem* elem = *el;
+        if (elem->id() % 10000 == 0)
+            std::cout << 100.0*elem->id()/mesh.n_elem() << "%" << std::endl;
+		dof_map.dof_indices (elem, dof_indices);
+		fe->reinit (elem);
+		Ke.resize (dof_indices.size(), dof_indices.size());
+		Fee.resize (dof_indices.size());
+
+        {
+        int b,s;
+        if (bc.find(elem->id()+1,&b,&s))
+		for (unsigned int side=0; side<elem->n_sides(); side++)
+			if (side+1==(unsigned int)s)
+		{
+            if (elem->neighbor(side) != NULL) error();
+			const std::vector<std::vector<Real> >&  phi_face=fe_face->get_phi();
+			const std::vector<Real>& JxW_face = fe_face->get_JxW();
+			fe_face->reinit(elem, side);
+
+            //bottom
+            if (b==2) 
+            {
+
+			for (unsigned int qp=0; qp<qface.n_points(); qp++)
+			{
+				for (unsigned int i=0; i<phi_face.size(); i++)
+					//S += x[elem->id()]*JxW_face[qp]*phi_face[i][qp];
+					S += JxW_face[qp]*phi_face[i][qp];
+			} 
+            }
+
+		}
+        }
+
+	} 
+
+    std::cout << "done." << std::endl;
+    }
+    libMesh::close();
+    return S;
+}

@@ -376,7 +376,7 @@ void grad(const std::string& meshfile, double* x, int xsize,
             //g=average(gr,gr,gr,gr....) for gr in all gauss points
             gra=(gra*((Real)qp)+gr)/(qp+1);
 		} 
-        g[elem->id()] = gra(2);//.size(); 
+        g[elem->id()] = gra(1);//.size(); 
 
 	} 
 //        for (int i=0;i<xsize;i++)

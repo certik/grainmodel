@@ -14,6 +14,7 @@ edit src/paths to point to your libmeshpetscpackage installation.
 ./make 
 
 wajig install python-pexpect python-pyparsing python-syck gmsh
+wajig install python-tables
 svn checkout http://femgeom.googlecode.com/svn/trunk/ femgeom
 
 usage

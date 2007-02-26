@@ -98,20 +98,6 @@ void write_float(std::ostream& f, double d)
     f.write((char *) &d,sizeof(double));
 }
 
-double read_float(std::istream& f)
-{
-    double d;
-    f.read((char *)&d, sizeof(double));
-    return d;
-}
-
-unsigned int read_int(std::istream& f)
-{
-    unsigned int i;
-    f.read((char *)&i, sizeof(unsigned int));
-    return i;
-}
-
 void save_matrix(std::ostream& f, DenseMatrix<Number>& M)
 {
     for (unsigned int i=0;i<M.m();i++)
@@ -155,12 +141,16 @@ loadmatrices::~loadmatrices()
 
 double loadmatrices::readfloat()
 {
-    return read_float(*f);
+    double d;
+    (*f).read((char *)&d, sizeof(double));
+    return d;
 }
 
 unsigned int loadmatrices::readint()
 {
-    return read_int(*f);
+    unsigned int i;
+    (*f).read((char *)&i, sizeof(unsigned int));
+    return i;
 }
 
 class matrices
@@ -185,56 +175,22 @@ class matrices
                 std::vector<unsigned int>& dof_indices,
                 const Mesh& mesh)
         {
-            save_matrix(*f,Ae);
             save_vector_int(*f,dof_indices,mesh);
+            save_matrix(*f,Ae);
         }
         void addtoF(DenseVector<Number> Fe,
                 std::vector<unsigned int>& dof_indices,
                 const Mesh& mesh)
         {
             save_vector(*f,Fe);
-            save_vector_int(*f,dof_indices,mesh);
         }
     private:
         std::ofstream *f;
 };
 
-inline int get_local_id(const Elem *elem, unsigned int i)
-{
-    for (unsigned int s=0;s<elem->n_nodes();s++)
-        if (elem->node(s)==i) return s;
-    std::cout << "node " << i << " not found in elem!" << std::endl;
-    error();
-}
-
-void save_elem(std::ostream& f, const Elem* el,
-        std::vector<unsigned int>& dof_indices)
-{
-    f << el->id() << ": ";
-    //indices in the global matrix
-    for (unsigned int i=0;i<dof_indices.size();i++)
-        //the same as: el->get_node(i)->dof_number(0,0,0)
-        f << dof_indices[i] << " ";
-    f << "|| ";
-    //original node numbers
-    for (unsigned int i=0;i<el->n_nodes();i++)
-        f << el->node(i) << " ";
-    f << std::endl;
-}
-
-//mapping from orig ids to libmesh's ids.
-void save_node_map(const char* fname, const Mesh& mesh)
-{
-    std::ofstream f(fname);
-    for (unsigned int i=0;i<mesh.n_nodes();i++)
-        f<<mesh.node(i).dof_number(0,0,0) << " ";
-    f << std::endl;
-}
-
 void assemble_poisson(EquationSystems& es)
 {
     std::cout << "assembling..." << std::endl;
-	PerfLog perf("Matrix Assembly");
 	const Mesh& mesh = es.get_mesh();
 	const unsigned int dim = mesh.mesh_dimension();
 	LinearImplicitSystem& system=es.get_system<LinearImplicitSystem>("Poisson");
@@ -269,7 +225,6 @@ void assemble_poisson(EquationSystems& es)
     std::cout << "Start" << std::endl;
 	for ( ; el != end_el ; ++el)
 	{
-		perf.start_event("elem init");
 		const Elem* elem = *el;
         if (elem->id() % 10000 == 0)
             std::cout << 100.0*elem->id()/mesh.n_elem() << "%" << std::endl;
@@ -277,9 +232,7 @@ void assemble_poisson(EquationSystems& es)
 		fe->reinit (elem);
 		Ke.resize (dof_indices.size(), dof_indices.size());
 		Fee.resize (dof_indices.size());
-		perf.stop_event("elem init");
 
-		perf.start_event("Ke");
 		for (unsigned int qp=0; qp<qrule.n_points(); qp++)
 		{
             Real lambda=1.0;
@@ -287,10 +240,8 @@ void assemble_poisson(EquationSystems& es)
 			for (unsigned int j=0; j<phi.size(); j++)
 				Ke(i,j) += JxW[qp]*(dphi[i][qp]*dphi[j][qp])*lambda;
 		} 
-		perf.stop_event("Ke");
 
 		{
-		perf.start_event("Fe");
         int b,s;
         if (bc.find(elem->id()+1,&b,&s))
 		for (unsigned int side=0; side<elem->n_sides(); side++)
@@ -320,17 +271,13 @@ void assemble_poisson(EquationSystems& es)
 			} 
 
 		}
-		perf.stop_event("Fe");
         }
 
-		perf.start_event("matrix insertion");
 
         mymatrices.addtoA(Ke,dof_indices,mesh);
         mymatrices.addtoF(Fee,dof_indices,mesh);
-		perf.stop_event("matrix insertion");
 	} //for element
 
-    perf.clear();
     std::cout << "done." << std::endl;
 }
 

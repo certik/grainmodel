@@ -18,11 +18,11 @@ from petsc4py.PETSc import Mat, KSP, InsertMode
 
 import progressbar
 
-print libmeshpy.doubleSum([1,2,3.14,4]), 10.14
+#print libmeshpy.doubleSum([1,2,3.14,4]), 10.14
 
-myArray = numpy.zeros(5,'d')
-libmeshpy.doubleOnes(myArray)
-print myArray, numpy.array([1.,1.,1.,1.,1.])
+#myArray = numpy.zeros(5,'d')
+#libmeshpy.doubleOnes(myArray)
+#print myArray, numpy.array([1.,1.,1.,1.,1.])
 
 print "starting"
 libmeshpy.mesh("../../tmp/in.xda")
@@ -69,20 +69,14 @@ class system:
         self.x,self.b=self.A.getVecs()
         self.b.zeroEntries()
         for i in range(ne):
-            Ae=l.loadmatrix()
-            l.loadindices()
-            Fe=l.loadvector()
             indices=l.loadindices()
+            Ae=l.loadmatrix()
+            Fe=l.loadvector()
             self.A.setValues(indices,indices,Ae,IM)
-#            print indices
             self.b.setValues(indices,Fe,IM)
             self.pbar.update(i)
-
-#        self.A.setValues([5264],[5264],1.0,IM)
         self.A.assemble()
-        #temporary
-#        self.b.setRandom()
-#        self.A.diagonalSet(self.b)
+
     def solve(self):
         ksp = KSP()
         ksp.create()
@@ -92,14 +86,10 @@ class system:
 
 s=system()
 s.load("../../tmp/matrices")
-print "solve"
+print "solving"
 s.solve()
 
 print "saving"
-#f=open("../../tmp/sol.dat","w")
-#for a in s.x.getValues(range(len(s.x))):
-#    f.write("%f "%a)
-
 import tables
 h5=tables.openFile("../../tmp/sol.h5",mode="w",title="Test")
 gsol=h5.createGroup(h5.root,"solver","Ax=b")

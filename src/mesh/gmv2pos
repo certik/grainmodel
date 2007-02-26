@@ -7,11 +7,13 @@ def readline(fname,type=float):
 def remap(mapping,nodes):
     return [nodes[x] for x in mapping]
 
-def readsol(fname):
+def readsol(fname,a=1):
     import tables
     h5=tables.openFile(fname,mode="r")
-    a=h5.root.solver.x.read()
-    #a=h5.root.solver.grad.read()
+    if a==1:
+        a=h5.root.solver.x.read()
+    else:
+        a=h5.root.solver.grad.read()
     h5.close()
     return a
     
@@ -29,3 +31,5 @@ for fname in ("tmp/sol.h5",):#glob.glob("out/*.dat"):
     #m.scalars=remap(mapping,readsol(fname))
     m.scalars=readsol(fname)
     m.writescalarspos(fname[:-4]+".pos","libmesh")
+    m.convert_el_to_nodes(readsol(fname,2))
+    m.writescalarspos(fname[:-4]+"g.pos","libmesh")

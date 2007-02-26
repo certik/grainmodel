@@ -1832,6 +1832,19 @@ class mesh:
         a[1]/=len(list)
         a[2]/=len(list)
         return a
+    def convert_el_to_nodes(self,els):
+        tmp=[]
+        for i in self.nodes:
+            tmp.append([])
+        for el,data in zip(self.elements,els):
+            nodes=el[2:]
+            if self.is2d:
+                assert(data[len(nodes)*2]==0)
+            for node in nodes:
+                tmp[node-1].append(data)  
+        self.scalars=[]
+        for s in tmp:
+            self.scalars.append(self.average(s))
     def convert_stress_to_nodes(self):
         tmp=[]
         for i in self.nodes:

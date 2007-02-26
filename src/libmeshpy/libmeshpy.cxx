@@ -364,15 +364,19 @@ void grad(const std::string& meshfile, double* x, int xsize,
 		Ke.resize (dof_indices.size(), dof_indices.size());
 		Fee.resize (dof_indices.size());
 
+        RealGradient gra=0;
 		for (unsigned int qp=0; qp<qrule.n_points(); qp++)
 		{
+            RealGradient gr=0;
 			for (unsigned int i=0; i<phi.size(); i++)
             {
                 unsigned int nod=elem->get_node(i)->id();
-				RealGradient gr=x[nod]*dphi[i][qp];
-                g[nod]= gr.size(); 
+				gr+=x[nod]*dphi[i][qp];
             }
+            //g=average(gr,gr,gr,gr....) for gr in all gauss points
+            gra=(gra*((Real)qp)+gr)/(qp+1);
 		} 
+        g[elem->id()] = gra.size(); 
 
 	} 
 //        for (int i=0;i<xsize;i++)

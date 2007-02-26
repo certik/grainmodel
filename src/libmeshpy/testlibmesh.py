@@ -25,7 +25,7 @@ libmeshpy.doubleOnes(myArray)
 print myArray, numpy.array([1.,1.,1.,1.,1.])
 
 print "starting"
-#libmeshpy.mesh("../../tmp/in.xda")
+libmeshpy.mesh("../../tmp/in.xda")
 
 class load:
     def __init__(self,fname):
@@ -96,8 +96,14 @@ print "solve"
 s.solve()
 
 print "saving"
-f=open("../../tmp/sol.dat","w")
-for a in s.x.getValues(range(len(s.x))):
-    f.write("%f "%a)
+#f=open("../../tmp/sol.dat","w")
+#for a in s.x.getValues(range(len(s.x))):
+#    f.write("%f "%a)
+
+import tables
+h5=tables.openFile("../../tmp/sol.h5",mode="w",title="Test")
+gsol=h5.createGroup(h5.root,"solver","Ax=b")
+h5.createArray(gsol,"x",s.x.getArray(),"solution vector")
+h5.close()
 
 print "ok, we are done."

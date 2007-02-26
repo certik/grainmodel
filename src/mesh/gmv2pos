@@ -10,8 +10,8 @@ def remap(mapping,nodes):
 def readsol(fname):
     import tables
     h5=tables.openFile(fname,mode="r")
-    #a=h5.root.solver.x.read()
-    a=h5.root.solver.grad.read()
+    a=h5.root.solver.x.read()
+    #a=h5.root.solver.grad.read()
     h5.close()
     return a
     

@@ -125,10 +125,22 @@ void save_vector(std::ostream& f, DenseVector<Number>& V)
         write_float(f,V.el(i));
 }
 
-void save_vector_int(std::ostream& f, std::vector<unsigned int>& V)
+unsigned int finda(unsigned int a, const Mesh& mesh)
+{
+    for (unsigned int i=0;i<mesh.n_nodes();i++)
+        if (mesh.node(i).dof_number(0,0,0)==a) return i;
+    error();
+}
+
+void save_vector_int(std::ostream& f, std::vector<unsigned int>& V, 
+        const Mesh& mesh)
 {
     for (unsigned int i=0;i<V.size();i++)
-        write_int(f,V[i]);
+    {
+        unsigned int a=V[i];
+        a=finda(a,mesh);
+        write_int(f,a);
+    }
 }
 
 loadmatrices::loadmatrices(const std::string& fname)
@@ -170,16 +182,18 @@ class matrices
             write_int(*f,ne);
         }
         void addtoA(DenseMatrix<Number> Ae,
-                std::vector<unsigned int>& dof_indices)
+                std::vector<unsigned int>& dof_indices,
+                const Mesh& mesh)
         {
             save_matrix(*f,Ae);
-            save_vector_int(*f,dof_indices);
+            save_vector_int(*f,dof_indices,mesh);
         }
         void addtoF(DenseVector<Number> Fe,
-                std::vector<unsigned int>& dof_indices)
+                std::vector<unsigned int>& dof_indices,
+                const Mesh& mesh)
         {
             save_vector(*f,Fe);
-            save_vector_int(*f,dof_indices);
+            save_vector_int(*f,dof_indices,mesh);
         }
     private:
         std::ofstream *f;
@@ -217,17 +231,6 @@ void save_node_map(const char* fname, const Mesh& mesh)
     f << std::endl;
 }
 
-void load_zeronodes(const char* fname, std::vector<unsigned int>& nodes)
-{
-    std::ifstream f(fname);
-    while (!f.eof())
-    {
-        int i;
-        f >> i;
-        nodes.push_back(i);
-    }
-}
-
 void assemble_poisson(EquationSystems& es)
 {
     std::cout << "assembling..." << std::endl;
@@ -253,17 +256,10 @@ void assemble_poisson(EquationSystems& es)
 
     QGauss qquad(2,FIFTH);
     qquad.init(QUAD4);
-    std::vector<std::vector<const Elem *> > nodes_to_elem_map;
-    MeshTools::build_nodes_to_elem_map(mesh,nodes_to_elem_map);
 
     std::cout << "nodes: " << mesh.n_nodes() << "; elements: " 
         << mesh.n_elem() << std::endl;
 
-    std::ofstream f("../../tmp/matrices.dat");
-    std::ofstream ftopo("../../tmp/topo.dat");
-    save_node_map("../../tmp/nodemap.libmesh", mesh);
-//	std::vector<unsigned int> zeronodes;
-//    load_zeronodes("tmp/zeronodes.gmsh", zeronodes);
     BC bc("../../tmp/t12.boundaries");
     matrices mymatrices("../../tmp/matrices");
     mymatrices.setsize(mesh.n_nodes(),mesh.n_elem());
@@ -329,8 +325,8 @@ void assemble_poisson(EquationSystems& es)
 
 		perf.start_event("matrix insertion");
 
-        mymatrices.addtoA(Ke,dof_indices);
-        mymatrices.addtoF(Fee,dof_indices);
+        mymatrices.addtoA(Ke,dof_indices,mesh);
+        mymatrices.addtoF(Fee,dof_indices,mesh);
 		perf.stop_event("matrix insertion");
 	} //for element
 

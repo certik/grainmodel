@@ -29,5 +29,8 @@
 %apply (int*    INPLACE_ARRAY1, int DIM1) {(int*    array,   int size)};
 %apply (double* INPLACE_ARRAY1, int DIM1) {(double* array,   int size)};
 
+%apply (double* IN_ARRAY1, int DIM1) {(double* x,   int xsize)};
+%apply (double* INPLACE_ARRAY1, int DIM1) {(double* g,   int gsize)};
+
 /* Include the header file to be wrapped */
 %include "libmeshpy.h"

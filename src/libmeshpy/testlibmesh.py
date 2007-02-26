@@ -59,7 +59,6 @@ class system:
                 progressbar.Bar(), ' ', progressbar.ETA()]
         self.pbar=progressbar.ProgressBar(widgets=widgets,maxval=ne-1).start()
 
-        #IM=InsertMode.INSERT_VALUES
         IM=InsertMode.ADD_VALUES
 
         self.A=Mat()
@@ -89,11 +88,18 @@ s.load("../../tmp/matrices")
 print "solving"
 s.solve()
 
+print "gradient"
+x = s.x.getArray()
+g = numpy.zeros(len(x),'d')
+libmeshpy.grad("../../tmp/in.xda",x,g)
+
 print "saving"
 import tables
 h5=tables.openFile("../../tmp/sol.h5",mode="w",title="Test")
 gsol=h5.createGroup(h5.root,"solver","Ax=b")
-h5.createArray(gsol,"x",s.x.getArray(),"solution vector")
+h5.createArray(gsol,"x",x,"solution vector")
+h5.createArray(gsol,"grad",g,"gradient of the solution vector")
 h5.close()
+
 
 print "ok, we are done."

@@ -55,6 +55,7 @@ class system:
         nn,ne=l.loadsize()
         print "nodes:",nn
         print "elements:",ne
+        self.nele=ne
         widgets=['Assembling: ', progressbar.Percentage(), ' ', 
                 progressbar.Bar(), ' ', progressbar.ETA()]
         self.pbar=progressbar.ProgressBar(widgets=widgets,maxval=ne-1).start()
@@ -90,7 +91,7 @@ s.solve()
 
 print "gradient"
 x = s.x.getArray()
-g = numpy.zeros(len(x),'d')
+g = numpy.zeros(s.nele,'d')
 libmeshpy.grad("../../tmp/in.xda",x,g)
 
 print "saving"

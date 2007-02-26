@@ -257,7 +257,7 @@ void assemble_poisson(EquationSystems& es)
         int b,s;
         if (bc.find(elem->id()+1,&b,&s))
 		for (unsigned int side=0; side<elem->n_sides(); side++)
-			if (side+1==(unsigned int)s)
+			if ((side+1==(unsigned int)s) and (b!=3))
 		{
             if (elem->neighbor(side) != NULL) error();
 			const std::vector<std::vector<Real> >&  phi_face=fe_face->get_phi();
@@ -450,7 +450,7 @@ double integ(const std::string& meshfile, double* x, int xsize)
 			fe_face->reinit(elem, side);
 
             //bottom
-            if (b==2) 
+            if (b==3) 
             {
 
 			for (unsigned int qp=0; qp<qface.n_points(); qp++)

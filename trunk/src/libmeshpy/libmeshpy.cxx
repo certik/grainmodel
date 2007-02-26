@@ -456,8 +456,8 @@ double integ(const std::string& meshfile, double* x, int xsize)
 			for (unsigned int qp=0; qp<qface.n_points(); qp++)
 			{
 				for (unsigned int i=0; i<phi_face.size(); i++)
-					//S += x[elem->id()]*JxW_face[qp]*phi_face[i][qp];
-					S += JxW_face[qp]*phi_face[i][qp];
+					S += x[elem->id()]*JxW_face[qp]*phi_face[i][qp];
+					//S += JxW_face[qp]*phi_face[i][qp];
 			} 
             }
 

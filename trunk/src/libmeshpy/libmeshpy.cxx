@@ -3,6 +3,18 @@
 #include <iostream>
 #include "libmeshpy.h"
 
+/*
+ * some notes about node numbering:
+ * mesh.node(i)->id()   .... the i (and the returned value) is the node number
+ * as read from the in.xda file
+ * mesh.node(i)->dof_number(0,0,0) returns a number, which is used in the global
+ * matrix construction, which is returned in dof_indices, returned by
+ * dof_map.dof_indices (elem, dof_indices);
+ *
+ * The policy is to export only the original numbers. That libmesh also uses
+ * some other numberings should be hidden from the user.
+*/
+
 double doubleSum(double* series, int size) {
   double result = 0.0;
   for (int i=0; i<size; ++i) result += series[i];
@@ -297,6 +309,76 @@ void mesh(const std::string& meshfile)
         equation_systems.get_system("Poisson").add_variable("u", FIRST);
         equation_systems.init();
         assemble_poisson(equation_systems);
+    }
+    libMesh::close();
+}
+
+void grad(const std::string& meshfile, double* x, int xsize, 
+        double* g, int gsize)
+{
+    std::cout << "starting..." << std::endl;
+
+    int argc=1; char *p="./lmesh\n"; char **argv=&p;
+    libMesh::init (argc, argv);
+    {    
+        Mesh mesh(3);
+        mesh.read(meshfile);
+        mesh.find_neighbors();
+        EquationSystems equation_systems (mesh);
+        equation_systems.add_system<LinearImplicitSystem> ("Poisson");
+        equation_systems.get_system("Poisson").add_variable("u", FIRST);
+        equation_systems.init();
+        
+
+    std::cout << "computing gradient..." << std::endl;
+	const unsigned int dim = mesh.mesh_dimension();
+	LinearImplicitSystem& system=equation_systems.get_system<LinearImplicitSystem>("Poisson");
+	const DofMap& dof_map = system.get_dof_map();
+	FEType fe_type = dof_map.variable_type(0);
+	AutoPtr<FEBase> fe (FEBase::build(dim, fe_type));
+	QGauss qrule (dim, FIFTH);
+	fe->attach_quadrature_rule (&qrule);
+	AutoPtr<FEBase> fe_face (FEBase::build(dim, fe_type));
+	QGauss qface(dim-1, FIFTH);
+	fe_face->attach_quadrature_rule (&qface);
+	const std::vector<std::vector<Real> >& phi = fe->get_phi();
+	const std::vector<std::vector<RealGradient> >& dphi = fe->get_dphi();
+
+	DenseMatrix<Number> Ke;
+	DenseVector<Number> Fee;
+	std::vector<unsigned int> dof_indices;
+
+    QGauss qquad(2,FIFTH);
+    qquad.init(QUAD4);
+
+	MeshBase::const_element_iterator       el     = mesh.elements_begin();
+	const MeshBase::const_element_iterator end_el = mesh.elements_end();
+    std::cout << "Start" << std::endl;
+	for ( ; el != end_el ; ++el)
+	{
+		const Elem* elem = *el;
+        if (elem->id() % 10000 == 0)
+            std::cout << 100.0*elem->id()/mesh.n_elem() << "%" << std::endl;
+		dof_map.dof_indices (elem, dof_indices);
+		fe->reinit (elem);
+		Ke.resize (dof_indices.size(), dof_indices.size());
+		Fee.resize (dof_indices.size());
+
+		for (unsigned int qp=0; qp<qrule.n_points(); qp++)
+		{
+			for (unsigned int i=0; i<phi.size(); i++)
+            {
+                unsigned int nod=elem->get_node(i)->id();
+				RealGradient gr=x[nod]*dphi[i][qp];
+                g[nod]= gr.size(); 
+            }
+		} 
+
+	} 
+//        for (int i=0;i<xsize;i++)
+//            g[i]=1/x[i];
+
+    std::cout << "done." << std::endl;
     }
     libMesh::close();
 }

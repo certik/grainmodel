@@ -4,6 +4,9 @@
 double doubleSum( double* series, int size);
 void doubleOnes(  double* array, int size);
 
+void grad(const std::string& meshfile, double* x, int xsize, 
+        double* g, int gsize);
+
 void mesh(const std::string& meshfile);
 
 class loadmatrices

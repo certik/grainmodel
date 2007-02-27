@@ -123,32 +123,12 @@ void save_vector(std::ostream& f, DenseVector<Number>& V)
         write_float(f,V.el(i));
 }
 
-unsigned int finda(unsigned int a, const Mesh& mesh)
-{
-    unsigned int map[mesh.n_nodes()];
-    for (unsigned int i=0;i<mesh.n_nodes();i++)
-        map[mesh.node(i).dof_number(0,0,0)]=i;
-    return map[a];
-//    for (unsigned int i=0;i<mesh.n_nodes();i++)
-//        if (mesh.node(i).dof_number(0,0,0)==a) return i;
-    error();
-}
-
-unsigned int finda_old(unsigned int a, const Mesh& mesh)
-{
-    for (unsigned int i=0;i<mesh.n_nodes();i++)
-        if (mesh.node(i).dof_number(0,0,0)==a) return i;
-    error();
-}
-
 void save_vector_int(std::ostream& f, std::vector<unsigned int>& V, 
-        const Mesh& mesh)
+        unsigned int *map)
 {
     for (unsigned int i=0;i<V.size();i++)
     {
-        unsigned int a=V[i];
-        a=finda(a,mesh);
-        write_int(f,a);
+        write_int(f,map[V[i]]);
     }
 }
 
@@ -196,14 +176,12 @@ class matrices
         }
         void addtoA(DenseMatrix<Number> Ae,
                 std::vector<unsigned int>& dof_indices,
-                const Mesh& mesh)
+                unsigned int *map)
         {
-            save_vector_int(*f,dof_indices,mesh);
+            save_vector_int(*f,dof_indices,map);
             save_matrix(*f,Ae);
         }
-        void addtoF(DenseVector<Number> Fe,
-                std::vector<unsigned int>& dof_indices,
-                const Mesh& mesh)
+        void addtoF(DenseVector<Number> Fe)
         {
             save_vector(*f,Fe);
         }
@@ -242,6 +220,10 @@ void assemble_poisson(EquationSystems& es)
     BC bc("../../tmp/t12.boundaries");
     matrices mymatrices("../../tmp/matrices");
     mymatrices.setsize(mesh.n_nodes(),mesh.n_elem());
+
+    unsigned int nodemap[mesh.n_nodes()];
+    for (unsigned int i=0;i<mesh.n_nodes();i++)
+        nodemap[mesh.node(i).dof_number(0,0,0)]=i;
 
 	MeshBase::const_element_iterator       el     = mesh.elements_begin();
 	const MeshBase::const_element_iterator end_el = mesh.elements_end();
@@ -297,8 +279,8 @@ void assemble_poisson(EquationSystems& es)
         }
 
 
-        mymatrices.addtoA(Ke,dof_indices,mesh);
-        mymatrices.addtoF(Fee,dof_indices,mesh);
+        mymatrices.addtoA(Ke,dof_indices,nodemap);
+        mymatrices.addtoF(Fee);
 	} //for element
 
     std::cout << "done." << std::endl;

@@ -98,7 +98,9 @@ g = numpy.zeros(s.nele,'d')
 libmeshpy.grad("../../tmp/in.xda",x,g)
 
 print "integrating"
-print "integ=", libmeshpy.integ("../../tmp/in.xda",g)
+i =[ libmeshpy.integ("../../tmp/in.xda",g,b) for b in (1,2,3) ]
+print "bottom:", i[1]
+print "top   :", i[0]+i[2],"=",i[0],"+",i[2]
 
 print "saving"
 import tables

@@ -6,4 +6,4 @@ cd src/libmeshpy
 ./testlibmesh.py
 cd ../..
 src/mesh/gmv2pos
-gmsh tmp/so.pos
+#gmsh tmp/so.pos

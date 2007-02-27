@@ -7,7 +7,7 @@ void doubleOnes(  double* array, int size);
 void grad(const std::string& meshfile, double* x, int xsize, 
         double* g, int gsize);
 
-double integ(const std::string& meshfile, double* x, int xsize);
+double integ(const std::string& meshfile, double* x, int xsize, int b);
 
 void mesh(const std::string& meshfile);
 

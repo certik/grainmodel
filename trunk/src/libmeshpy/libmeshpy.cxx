@@ -387,7 +387,7 @@ void grad(const std::string& meshfile, double* x, int xsize,
     libMesh::close();
 }
 
-double integ(const std::string& meshfile, double* x, int xsize) 
+double integ(const std::string& meshfile, double* x, int xsize, int b) 
 {
     std::cout << "starting..." << std::endl;
     double S=0.0;
@@ -439,19 +439,15 @@ double integ(const std::string& meshfile, double* x, int xsize)
 		Fee.resize (dof_indices.size());
 
         {
-        int b,s;
-        if (bc.find(elem->id()+1,&b,&s))
+        int bb,s;
+        if (bc.find(elem->id()+1,&bb,&s))
 		for (unsigned int side=0; side<elem->n_sides(); side++)
-			if (side+1==(unsigned int)s)
+			if ((side+1==(unsigned int)s) and (bb==b))
 		{
             if (elem->neighbor(side) != NULL) error();
 			const std::vector<std::vector<Real> >&  phi_face=fe_face->get_phi();
 			const std::vector<Real>& JxW_face = fe_face->get_JxW();
 			fe_face->reinit(elem, side);
-
-            //bottom
-            if (b==3) 
-            {
 
 			for (unsigned int qp=0; qp<qface.n_points(); qp++)
 			{
@@ -459,7 +455,6 @@ double integ(const std::string& meshfile, double* x, int xsize)
 					S += x[elem->id()]*JxW_face[qp]*phi_face[i][qp];
 					//S += JxW_face[qp]*phi_face[i][qp];
 			} 
-            }
 
 		}
         }

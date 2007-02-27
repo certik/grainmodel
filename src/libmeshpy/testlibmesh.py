@@ -66,6 +66,9 @@ class system:
         self.A.create()
         self.A.setSizes(nn)
         self.A.setFromOptions()
+#        self.A.option = Mat.Option.ROWS_SORTED
+#        self.A.option = Mat.Option.COLUMNS_SORTED
+#        self.A.option = Mat.Option.STRUCTURALLY_SYMMETRIC
         self.x,self.b=self.A.getVecs()
         self.b.zeroEntries()
         for i in range(ne):

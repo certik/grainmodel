@@ -125,6 +125,17 @@ void save_vector(std::ostream& f, DenseVector<Number>& V)
 
 unsigned int finda(unsigned int a, const Mesh& mesh)
 {
+    unsigned int map[mesh.n_nodes()];
+    for (unsigned int i=0;i<mesh.n_nodes();i++)
+        map[mesh.node(i).dof_number(0,0,0)]=i;
+    return map[a];
+//    for (unsigned int i=0;i<mesh.n_nodes();i++)
+//        if (mesh.node(i).dof_number(0,0,0)==a) return i;
+    error();
+}
+
+unsigned int finda_old(unsigned int a, const Mesh& mesh)
+{
     for (unsigned int i=0;i<mesh.n_nodes();i++)
         if (mesh.node(i).dof_number(0,0,0)==a) return i;
     error();

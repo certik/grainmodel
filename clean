@@ -2,6 +2,7 @@
 
 rm -f tmp/*
 rm -f out/*
+py.cleanup
 cd doc
 ./clean
 cd ..

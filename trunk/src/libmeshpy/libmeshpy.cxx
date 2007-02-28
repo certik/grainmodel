@@ -176,116 +176,109 @@ class matrices
         std::ofstream *f;
 };
 
-void assemble_poisson(EquationSystems& es, Updater *up)
-{
-	const Mesh& mesh = es.get_mesh();
-	const unsigned int dim = mesh.mesh_dimension();
-	LinearImplicitSystem& system=es.get_system<LinearImplicitSystem>("Poisson");
-	const DofMap& dof_map = system.get_dof_map();
-	FEType fe_type = dof_map.variable_type(0);
-	AutoPtr<FEBase> fe (FEBase::build(dim, fe_type));
-	QGauss qrule (dim, FIFTH);
-	fe->attach_quadrature_rule (&qrule);
-	AutoPtr<FEBase> fe_face (FEBase::build(dim, fe_type));
-	QGauss qface(dim-1, FIFTH);
-	fe_face->attach_quadrature_rule (&qface);
-	const std::vector<Real>& JxW = fe->get_JxW();
-	const std::vector<std::vector<Real> >& phi = fe->get_phi();
-	const std::vector<std::vector<RealGradient> >& dphi = fe->get_dphi();
-
-	DenseMatrix<Number> Ke;
-	DenseVector<Number> Fee;
-	std::vector<unsigned int> dof_indices;
-
-    QGauss qquad(2,FIFTH);
-    qquad.init(QUAD4);
-
-    //std::cout << "nodes: " << mesh.n_nodes() << "; elements: " 
-    //    << mesh.n_elem() << std::endl;
-
-    BC bc("../../tmp/t12.boundaries");
-    matrices mymatrices("../../tmp/matrices");
-    mymatrices.setsize(mesh.n_nodes(),mesh.n_elem());
-
-    unsigned int nodemap[mesh.n_nodes()];
-    for (unsigned int i=0;i<mesh.n_nodes();i++)
-        nodemap[mesh.node(i).dof_number(0,0,0)]=i;
-
-	MeshBase::const_element_iterator       el     = mesh.elements_begin();
-	const MeshBase::const_element_iterator end_el = mesh.elements_end();
-    //std::cout << "Start" << std::endl;
-    if (up!=NULL) up->init(mesh.n_elem()-1);
-	for ( ; el != end_el ; ++el)
-	{
-		const Elem* elem = *el;
-        if (up!=NULL) up->update(elem->id());
-		dof_map.dof_indices (elem, dof_indices);
-		fe->reinit (elem);
-		Ke.resize (dof_indices.size(), dof_indices.size());
-		Fee.resize (dof_indices.size());
-
-		for (unsigned int qp=0; qp<qrule.n_points(); qp++)
-		{
-            Real lambda=1.0;
-			for (unsigned int i=0; i<phi.size(); i++)
-			for (unsigned int j=0; j<phi.size(); j++)
-				Ke(i,j) += JxW[qp]*(dphi[i][qp]*dphi[j][qp])*lambda;
-		} 
-
-		{
-        int b,s;
-        if (bc.find(elem->id()+1,&b,&s))
-		for (unsigned int side=0; side<elem->n_sides(); side++)
-			if ((side+1==(unsigned int)s) and (b!=3))
-		{
-            if (elem->neighbor(side) != NULL) error();
-			const std::vector<std::vector<Real> >&  phi_face=fe_face->get_phi();
-			const std::vector<Real>& JxW_face = fe_face->get_JxW();
-			fe_face->reinit(elem, side);
-
-			Real value;
-            if (b==1) value=1.0;
-            else if (b==2) value=0.0;
-            else error()
-
-			for (unsigned int qp=0; qp<qface.n_points(); qp++)
-			{
-				const Real penalty = 1.e10;
-
-				for (unsigned int i=0; i<phi_face.size(); i++)
-				for (unsigned int j=0; j<phi_face.size(); j++)
-					Ke(i,j) += JxW_face[qp]*
-						penalty*phi_face[i][qp]*phi_face[j][qp];
-
-				for (unsigned int i=0; i<phi_face.size(); i++)
-					Fee(i) += JxW_face[qp]*penalty*value*phi_face[i][qp];
-			} 
-
-		}
-        }
-
-
-        mymatrices.addtoA(Ke,dof_indices,nodemap);
-        mymatrices.addtoF(Fee);
-	} //for element
-
-//    std::cout << "done." << std::endl;
-}
-
-//void mesh(const std::string& meshfile, const Updater &up)
-void mesh(const std::string& meshfile, Updater *up)
+void mesh(const std::string& fmesh, const std::string& fmatrices,
+    const std::string& fboundaries, Updater *up)
 {
     int argc=1; char *p="./lmesh\n"; char **argv=&p;
     libMesh::init (argc, argv);
     {    
         Mesh mesh(3);
-        mesh.read(meshfile);
+        mesh.read(fmesh);
         mesh.find_neighbors();
         EquationSystems equation_systems (mesh);
         equation_systems.add_system<LinearImplicitSystem> ("Poisson");
         equation_systems.get_system("Poisson").add_variable("u", FIRST);
         equation_systems.init();
-        assemble_poisson(equation_systems,up);
+
+        const unsigned int dim = mesh.mesh_dimension();
+        LinearImplicitSystem& system=
+            equation_systems.get_system<LinearImplicitSystem>("Poisson");
+        const DofMap& dof_map = system.get_dof_map();
+        FEType fe_type = dof_map.variable_type(0);
+        AutoPtr<FEBase> fe (FEBase::build(dim, fe_type));
+        QGauss qrule (dim, FIFTH);
+        fe->attach_quadrature_rule (&qrule);
+        AutoPtr<FEBase> fe_face (FEBase::build(dim, fe_type));
+        QGauss qface(dim-1, FIFTH);
+        fe_face->attach_quadrature_rule (&qface);
+        const std::vector<Real>& JxW = fe->get_JxW();
+        const std::vector<std::vector<Real> >& phi = fe->get_phi();
+        const std::vector<std::vector<RealGradient> >& dphi = fe->get_dphi();
+
+        DenseMatrix<Number> Ke;
+        DenseVector<Number> Fee;
+        std::vector<unsigned int> dof_indices;
+
+        QGauss qquad(2,FIFTH);
+        qquad.init(QUAD4);
+
+        //std::cout << "nodes: " << mesh.n_nodes() << "; elements: " 
+        //    << mesh.n_elem() << std::endl;
+
+        BC bc(fboundaries.c_str());
+        matrices mymatrices(fmatrices.c_str());
+        mymatrices.setsize(mesh.n_nodes(),mesh.n_elem());
+
+        unsigned int nodemap[mesh.n_nodes()];
+        for (unsigned int i=0;i<mesh.n_nodes();i++)
+            nodemap[mesh.node(i).dof_number(0,0,0)]=i;
+
+        MeshBase::const_element_iterator       el     = mesh.elements_begin();
+        const MeshBase::const_element_iterator end_el = mesh.elements_end();
+        if (up!=NULL) up->init(mesh.n_elem()-1);
+        for ( ; el != end_el ; ++el)
+        {
+            const Elem* elem = *el;
+            if (up!=NULL) up->update(elem->id());
+            dof_map.dof_indices (elem, dof_indices);
+            fe->reinit (elem);
+            Ke.resize (dof_indices.size(), dof_indices.size());
+            Fee.resize (dof_indices.size());
+
+            for (unsigned int qp=0; qp<qrule.n_points(); qp++)
+            {
+                Real lambda=1.0;
+                for (unsigned int i=0; i<phi.size(); i++)
+                for (unsigned int j=0; j<phi.size(); j++)
+                    Ke(i,j) += JxW[qp]*(dphi[i][qp]*dphi[j][qp])*lambda;
+            } 
+
+            {
+            int b,s;
+            if (bc.find(elem->id()+1,&b,&s))
+            for (unsigned int side=0; side<elem->n_sides(); side++)
+                if ((side+1==(unsigned int)s) and (b!=3))
+            {
+                if (elem->neighbor(side) != NULL) error();
+                const std::vector<std::vector<Real> >&  phi_face=fe_face->get_phi();
+                const std::vector<Real>& JxW_face = fe_face->get_JxW();
+                fe_face->reinit(elem, side);
+
+                Real value;
+                if (b==1) value=1.0;
+                else if (b==2) value=0.0;
+                else error()
+
+                for (unsigned int qp=0; qp<qface.n_points(); qp++)
+                {
+                    const Real penalty = 1.e10;
+
+                    for (unsigned int i=0; i<phi_face.size(); i++)
+                    for (unsigned int j=0; j<phi_face.size(); j++)
+                        Ke(i,j) += JxW_face[qp]*
+                            penalty*phi_face[i][qp]*phi_face[j][qp];
+
+                    for (unsigned int i=0; i<phi_face.size(); i++)
+                        Fee(i) += JxW_face[qp]*penalty*value*phi_face[i][qp];
+                } 
+
+            }
+            }
+
+
+            mymatrices.addtoA(Ke,dof_indices,nodemap);
+            mymatrices.addtoF(Fee);
+        } //for element
     }
     libMesh::close();
 }
@@ -331,8 +324,6 @@ void grad(const std::string& meshfile, double* x, int xsize,
 	{
 		const Elem* elem = *el;
         if (up!=NULL) up->update(elem->id());
-        //if (elem->id() % 10000 == 0)
-        //    std::cout << 100.0*elem->id()/mesh.n_elem() << "%" << std::endl;
 		dof_map.dof_indices (elem, dof_indices);
 		fe->reinit (elem);
 		Ke.resize (dof_indices.size(), dof_indices.size());
@@ -360,8 +351,8 @@ void grad(const std::string& meshfile, double* x, int xsize,
     libMesh::close();
 }
 
-double integ(const std::string& meshfile, double* x, int xsize, int b, 
-        Updater *up) 
+double integ(const std::string& meshfile, const std::string& fboundaries, 
+        double* x, int xsize, int b, Updater *up) 
 {
     double S=0.0;
 
@@ -392,7 +383,7 @@ double integ(const std::string& meshfile, double* x, int xsize, int b,
 	DenseVector<Number> Fee;
 	std::vector<unsigned int> dof_indices;
 
-    BC bc("../../tmp/t12.boundaries");
+    BC bc(fboundaries.c_str());
 
     QGauss qquad(2,FIFTH);
     qquad.init(QUAD4);
@@ -404,8 +395,6 @@ double integ(const std::string& meshfile, double* x, int xsize, int b,
 	{
 		const Elem* elem = *el;
         if (up!=NULL) up->update(elem->id());
-        //if (elem->id() % 10000 == 0)
-        //    std::cout << 100.0*elem->id()/mesh.n_elem() << "%" << std::endl;
 		dof_map.dof_indices (elem, dof_indices);
 		fe->reinit (elem);
 		Ke.resize (dof_indices.size(), dof_indices.size());

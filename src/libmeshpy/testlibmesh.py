@@ -51,10 +51,16 @@ class Matrices:
         return self.m.readint(),self.m.readint()
 
 class system:
-    def compute_element_matrices(self,fmesh):
-        libmeshpy.mesh(fmesh,MyBar("Element matrices and RHS: "))
-    def assemble(self,fmatrices):
-        l=Matrices(fmatrices)
+    def __init__(self,fmesh,fmatrices,fboundaries,fsol):
+        self.fmesh=fmesh
+        self.fmatrices=fmatrices
+        self.fboundaries=fboundaries
+        self.fsol=fsol
+    def compute_element_matrices(self):
+        libmeshpy.mesh(self.fmesh,self.fmatrices,self.fboundaries,
+                MyBar("Element matrices and RHS: "))
+    def assemble(self):
+        l=Matrices(self.fmatrices)
         nn,ne=l.loadsize()
 #        print "nodes:",nn
 #        print "elements:",ne
@@ -113,32 +119,32 @@ class system:
         self.x=self.x.getArray()
         pbar.update(iterguess)
 
-    def gradient(self,fmesh):
+    def gradient(self):
         self.g = numpy.zeros(s.nele,'d')
-        libmeshpy.grad(fmesh,self.x,self.g,
+        libmeshpy.grad(self.fmesh,self.x,self.g,
                 MyBar("Gradient of solution: "))
 
-    def integ(self,fmesh):
-        i =[ libmeshpy.integ(fmesh,self.g,b,
+    def integ(self):
+        i =[ libmeshpy.integ(self.fmesh,self.fboundaries,self.g,b,
             MyBar("Integrating the gradient (%d): "%(b))) for b in (1,2,3) ]
         print "bottom:", i[1]
         print "top   :", i[0]+i[2],"=",i[0],"+",i[2]
 
-    def save(self,fname):
-        print "saving"
+    def save(self):
         import tables
-        h5=tables.openFile(fname,mode="w",title="Test")
+        h5=tables.openFile(self.fsol,mode="w",title="Test")
         gsol=h5.createGroup(h5.root,"solver","Ax=b")
         h5.createArray(gsol,"x",self.x,"solution vector")
         h5.createArray(gsol,"grad",self.g,"gradient of the solution vector")
         h5.close()
 
-s=system()
-s.compute_element_matrices("../../tmp/in.xda")
-s.assemble("../../tmp/matrices")
+s=system("../../tmp/in.xda", "../../tmp/matrices", "../../tmp/t12.boundaries",
+        "../../tmp/sol.h5")
+s.compute_element_matrices()
+s.assemble()
 s.solve()
-s.gradient("../../tmp/in.xda")
-s.integ("../../tmp/in.xda")
-s.save("../../tmp/sol.h5")
+s.gradient()
+s.integ()
+s.save()
 
 print "done."

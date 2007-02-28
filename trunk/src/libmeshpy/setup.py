@@ -16,19 +16,19 @@ libmesh_contrib=os.path.dirname(glob.glob(lib+
     "/contrib/lib/*/liblaspack.so")[0])
 libmesh_inc=glob.glob(lib+"/include/*")
 libpaths=[libmesh,libmesh_contrib]
-_Series = Extension("_libmeshpy",
+_libmeshpy = Extension("_libmeshpy",
                     ["libmeshpy_wrap.cxx",
                      "libmeshpy.cxx"],
                     include_dirs = [numpy.get_include()]+libmesh_inc,
                     library_dirs=libpaths,
                     runtime_library_dirs=libpaths,
+                    extra_compile_args=["-O2"],
                     libraries = ["mesh","laspack"]
                     )
 
-# Series setup
 setup(name        = "libmeshpy",
-      description = "Functions that work on series",
-      author      = "Bill Spotz",
+      description = "Libmesh bindings for python",
+      author      = "Ondrej Certik",
       py_modules  = ["libmeshpy"],
-      ext_modules = [_Series]
+      ext_modules = [_libmeshpy]
       )

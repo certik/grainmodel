@@ -189,9 +189,8 @@ class matrices
         std::ofstream *f;
 };
 
-void assemble_poisson(EquationSystems& es)
+void assemble_poisson(EquationSystems& es, Updater *up)
 {
-    std::cout << "assembling..." << std::endl;
 	const Mesh& mesh = es.get_mesh();
 	const unsigned int dim = mesh.mesh_dimension();
 	LinearImplicitSystem& system=es.get_system<LinearImplicitSystem>("Poisson");
@@ -214,8 +213,8 @@ void assemble_poisson(EquationSystems& es)
     QGauss qquad(2,FIFTH);
     qquad.init(QUAD4);
 
-    std::cout << "nodes: " << mesh.n_nodes() << "; elements: " 
-        << mesh.n_elem() << std::endl;
+    //std::cout << "nodes: " << mesh.n_nodes() << "; elements: " 
+    //    << mesh.n_elem() << std::endl;
 
     BC bc("../../tmp/t12.boundaries");
     matrices mymatrices("../../tmp/matrices");
@@ -227,12 +226,12 @@ void assemble_poisson(EquationSystems& es)
 
 	MeshBase::const_element_iterator       el     = mesh.elements_begin();
 	const MeshBase::const_element_iterator end_el = mesh.elements_end();
-    std::cout << "Start" << std::endl;
+    //std::cout << "Start" << std::endl;
+    if (up!=NULL) up->init(mesh.n_elem()-1);
 	for ( ; el != end_el ; ++el)
 	{
 		const Elem* elem = *el;
-        if (elem->id() % 10000 == 0)
-            std::cout << 100.0*elem->id()/mesh.n_elem() << "%" << std::endl;
+        if (up!=NULL) up->update(elem->id());
 		dof_map.dof_indices (elem, dof_indices);
 		fe->reinit (elem);
 		Ke.resize (dof_indices.size(), dof_indices.size());
@@ -283,34 +282,30 @@ void assemble_poisson(EquationSystems& es)
         mymatrices.addtoF(Fee);
 	} //for element
 
-    std::cout << "done." << std::endl;
+//    std::cout << "done." << std::endl;
 }
 
-void mesh(const std::string& meshfile)
+//void mesh(const std::string& meshfile, const Updater &up)
+void mesh(const std::string& meshfile, Updater *up)
 {
-    std::cout << "starting..." << std::endl;
-
     int argc=1; char *p="./lmesh\n"; char **argv=&p;
     libMesh::init (argc, argv);
     {    
         Mesh mesh(3);
         mesh.read(meshfile);
         mesh.find_neighbors();
-        mesh.print_info();
         EquationSystems equation_systems (mesh);
         equation_systems.add_system<LinearImplicitSystem> ("Poisson");
         equation_systems.get_system("Poisson").add_variable("u", FIRST);
         equation_systems.init();
-        assemble_poisson(equation_systems);
+        assemble_poisson(equation_systems,up);
     }
     libMesh::close();
 }
 
 void grad(const std::string& meshfile, double* x, int xsize, 
-        double* g, int gsize)
+        double* g, int gsize, Updater *up)
 {
-    std::cout << "starting..." << std::endl;
-
     int argc=1; char *p="./lmesh\n"; char **argv=&p;
     libMesh::init (argc, argv);
     {    
@@ -322,8 +317,6 @@ void grad(const std::string& meshfile, double* x, int xsize,
         equation_systems.get_system("Poisson").add_variable("u", FIRST);
         equation_systems.init();
         
-
-    std::cout << "computing gradient..." << std::endl;
 	const unsigned int dim = mesh.mesh_dimension();
 	LinearImplicitSystem& system=equation_systems.get_system<LinearImplicitSystem>("Poisson");
 	const DofMap& dof_map = system.get_dof_map();
@@ -346,12 +339,13 @@ void grad(const std::string& meshfile, double* x, int xsize,
 
 	MeshBase::const_element_iterator       el     = mesh.elements_begin();
 	const MeshBase::const_element_iterator end_el = mesh.elements_end();
-    std::cout << "Start" << std::endl;
+    if (up!=NULL) up->init(mesh.n_elem()-1);
 	for ( ; el != end_el ; ++el)
 	{
 		const Elem* elem = *el;
-        if (elem->id() % 10000 == 0)
-            std::cout << 100.0*elem->id()/mesh.n_elem() << "%" << std::endl;
+        if (up!=NULL) up->update(elem->id());
+        //if (elem->id() % 10000 == 0)
+        //    std::cout << 100.0*elem->id()/mesh.n_elem() << "%" << std::endl;
 		dof_map.dof_indices (elem, dof_indices);
 		fe->reinit (elem);
 		Ke.resize (dof_indices.size(), dof_indices.size());
@@ -375,14 +369,13 @@ void grad(const std::string& meshfile, double* x, int xsize,
 //        for (int i=0;i<xsize;i++)
 //            g[i]=1/x[i];
 
-    std::cout << "done." << std::endl;
     }
     libMesh::close();
 }
 
-double integ(const std::string& meshfile, double* x, int xsize, int b) 
+double integ(const std::string& meshfile, double* x, int xsize, int b, 
+        Updater *up) 
 {
-    std::cout << "starting..." << std::endl;
     double S=0.0;
 
     int argc=1; char *p="./lmesh\n"; char **argv=&p;
@@ -397,7 +390,6 @@ double integ(const std::string& meshfile, double* x, int xsize, int b)
         equation_systems.init();
         
 
-    std::cout << "computing gradient..." << std::endl;
 	const unsigned int dim = mesh.mesh_dimension();
 	LinearImplicitSystem& system=equation_systems.get_system<LinearImplicitSystem>("Poisson");
 	const DofMap& dof_map = system.get_dof_map();
@@ -420,12 +412,13 @@ double integ(const std::string& meshfile, double* x, int xsize, int b)
 
 	MeshBase::const_element_iterator       el     = mesh.elements_begin();
 	const MeshBase::const_element_iterator end_el = mesh.elements_end();
-    std::cout << "Start" << std::endl;
+    if (up!=NULL) up->init(mesh.n_elem()-1);
 	for ( ; el != end_el ; ++el)
 	{
 		const Elem* elem = *el;
-        if (elem->id() % 10000 == 0)
-            std::cout << 100.0*elem->id()/mesh.n_elem() << "%" << std::endl;
+        if (up!=NULL) up->update(elem->id());
+        //if (elem->id() % 10000 == 0)
+        //    std::cout << 100.0*elem->id()/mesh.n_elem() << "%" << std::endl;
 		dof_map.dof_indices (elem, dof_indices);
 		fe->reinit (elem);
 		Ke.resize (dof_indices.size(), dof_indices.size());
@@ -454,7 +447,6 @@ double integ(const std::string& meshfile, double* x, int xsize, int b)
 
 	} 
 
-    std::cout << "done." << std::endl;
     }
     libMesh::close();
     return S;

@@ -4,12 +4,21 @@
 double doubleSum( double* series, int size);
 void doubleOnes(  double* array, int size);
 
+class Updater
+{
+    public:
+        virtual ~Updater() {}
+        virtual void init(int maxval)=0;
+        virtual void update(int i)=0;
+};
+
+void mesh(const std::string& meshfile, Updater *up);
+
 void grad(const std::string& meshfile, double* x, int xsize, 
-        double* g, int gsize);
+        double* g, int gsize, Updater *up);
 
-double integ(const std::string& meshfile, double* x, int xsize, int b);
-
-void mesh(const std::string& meshfile);
+double integ(const std::string& meshfile, double* x, int xsize, int b, 
+        Updater *up);
 
 class loadmatrices
 //currently Ax=F

@@ -24,8 +24,18 @@ import progressbar
 #libmeshpy.doubleOnes(myArray)
 #print myArray, numpy.array([1.,1.,1.,1.,1.])
 
-print "starting"
-libmeshpy.mesh("../../tmp/in.xda")
+class My(libmeshpy.Updater):
+    def __init__(self,text):
+        self.text=text
+        libmeshpy.Updater.__init__(self)
+    def init(self,max):
+        widgets=[self.text, progressbar.Percentage(), ' ', 
+                progressbar.Bar(), ' ', progressbar.ETA()]
+        self.pbar=progressbar.ProgressBar(widgets=widgets,maxval=max).start()
+    def update(self,i):
+        self.pbar.update(i)
+
+libmeshpy.mesh("../../tmp/in.xda",My("Element matrices and RHS: "))
 
 class load:
     def __init__(self,fname):
@@ -53,10 +63,10 @@ class system:
     def load(self,fname):
         l=load(fname)
         nn,ne=l.loadsize()
-        print "nodes:",nn
-        print "elements:",ne
+#        print "nodes:",nn
+#        print "elements:",ne
         self.nele=ne
-        widgets=['Assembling: ', progressbar.Percentage(), ' ', 
+        widgets=['Global matrix and RHS: ', progressbar.Percentage(), ' ', 
                 progressbar.Bar(), ' ', progressbar.ETA()]
         self.pbar=progressbar.ProgressBar(widgets=widgets,maxval=ne-1).start()
 
@@ -92,13 +102,12 @@ s.load("../../tmp/matrices")
 print "solving"
 s.solve()
 
-print "gradient"
 x = s.x.getArray()
 g = numpy.zeros(s.nele,'d')
-libmeshpy.grad("../../tmp/in.xda",x,g)
+libmeshpy.grad("../../tmp/in.xda",x,g,My("Gradient of solution: "))
 
-print "integrating"
-i =[ libmeshpy.integ("../../tmp/in.xda",g,b) for b in (1,2,3) ]
+i =[ libmeshpy.integ("../../tmp/in.xda",g,b,
+    My("Integrating the gradient (%d): "%(b))) for b in (1,2,3) ]
 print "bottom:", i[1]
 print "top   :", i[0]+i[2],"=",i[0],"+",i[2]
 

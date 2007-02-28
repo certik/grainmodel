@@ -1,0 +1,8 @@
+- create a better interface to libmesh - i.e. the System.integ should have
+a better interface
+
+- eventually get rid of the src dir
+
+- consider adding the femlib to femgeom, but later.
+
+- create assemble matrices for each problem.

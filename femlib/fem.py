@@ -114,7 +114,7 @@ class System:
         pbar.update(iterguess)
 
     def gradient(self):
-        self.g = numpy.zeros(s.nele,'d')
+        self.g = numpy.zeros(self.nele,'d')
         libmeshpy.grad(self.fmesh,self.x,self.g,
                 MyBar("Gradient of solution: "))
 

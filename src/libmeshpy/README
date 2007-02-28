@@ -1,4 +1,15 @@
 install python-dev
 
+build:
+-----
+
 make
+
+usage:
+------
+
 ./testlibmesh
+
+clean
+-----
+make clean

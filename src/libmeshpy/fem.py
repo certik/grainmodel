@@ -1,19 +1,13 @@
 #! /usr/bin/env python
 
-from distutils.util import get_platform
-import os
 import sys
 
 import numpy
-libdir=os.path.join("build", "lib.%s-%s" % (get_platform(), sys.version[:3]) )
-sys.path.append(libdir)
+
 import libmeshpy
-sys.path.append(os.path.join("/home/ondra/libmeshpetscpackage/libs/petsc4py",
-    libdir))
 import petsc4py
 petsc4py.init(sys.argv,"linux")
 from petsc4py.PETSc import Mat, KSP, InsertMode
-
 import progressbar
 
 class MyBar(libmeshpy.Updater):
@@ -137,14 +131,3 @@ class System:
         h5.createArray(gsol,"x",self.x,"solution vector")
         h5.createArray(gsol,"grad",self.g,"gradient of the solution vector")
         h5.close()
-
-s=System("../../tmp/in.xda", "../../tmp/matrices", "../../tmp/t12.boundaries",
-        "../../tmp/sol.h5")
-s.compute_element_matrices()
-s.assemble()
-s.solve()
-s.gradient()
-s.integ()
-s.save()
-
-print "done."

@@ -1,4 +1,4 @@
-%module libmeshpy
+%module(directors="1") libmeshpy
 
 %{
 #define SWIG_FILE_WITH_INIT
@@ -32,5 +32,6 @@
 %apply (double* IN_ARRAY1, int DIM1) {(double* x,   int xsize)};
 %apply (double* INPLACE_ARRAY1, int DIM1) {(double* g,   int gsize)};
 
+%feature("director") Updater;
 /* Include the header file to be wrapped */
 %include "libmeshpy.h"

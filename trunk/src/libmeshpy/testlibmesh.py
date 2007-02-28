@@ -83,7 +83,16 @@ class system:
         self.A.assemble()
 
     def solve(self,iterguess=23):
-        """The iterguess is the guess for the number of iterations
+        """Solves the system Ax=b.
+
+        A is stored in self.A
+        b is stored in self.b
+        x is stored in self.x 
+
+        all three of them must be initialized petsc vectors (and a matrix) and
+        the solution will be stored in self.x as a numpy array.
+        
+        The iterguess is the guess for the number of iterations
         the solver is going to make. This is used in the progress bar. If
         it is overestimated, the progressbar will jump for example from 60% to
         100% at the end, if it is underestimated, the progressbar will stop

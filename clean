@@ -5,5 +5,5 @@ rm -f out/*
 cd doc
 ./clean
 cd ..
-cd src
+cd femlib
 make clean

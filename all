@@ -1,9 +1,0 @@
-#! /bin/bash
-
-rm tmp/*
-./mesh
-cd src/libmeshpy
-./testlibmesh.py
-cd ../..
-src/mesh/gmv2pos
-#gmsh tmp/so.pos

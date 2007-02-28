@@ -12,4 +12,3 @@ clean:
 	$(RM) -r build
 	$(RM) $(WRAPPERS)
 	$(RM) $(PROXIES)
-	py.cleanup

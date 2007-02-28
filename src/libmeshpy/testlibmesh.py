@@ -59,8 +59,8 @@ class system:
 #        print "nodes:",nn
 #        print "elements:",ne
         self.nele=ne
-        self.pbar=MyBar("Global matrix and RHS: ")
-        self.pbar.init(ne-1)
+        pbar=MyBar("Global matrix and RHS: ")
+        pbar.init(ne-1)
 
         IM=InsertMode.ADD_VALUES
 
@@ -79,19 +79,30 @@ class system:
             Fe=l.loadvector()
             self.A.setValues(indices,indices,Ae,IM)
             self.b.setValues(indices,Fe,IM)
-            self.pbar.update(i)
+            pbar.update(i)
         self.A.assemble()
 
-    def solve(self):
+    def solve(self,iterguess=23):
+        """The iterguess is the guess for the number of iterations
+        the solver is going to make. This is used in the progress bar. If
+        it is overestimated, the progressbar will jump for example from 60% to
+        100% at the end, if it is underestimated, the progressbar will stop
+        at 99% (exactly at (iterguess-1)/iterguess * 100) but the solver will
+        be still computing and the progressbar will be updated to 100% only
+        when it returns."""
         pbar=MyBar("Solving Ax=b: ")
-        pbar.init(1)
+        pbar.init(iterguess)
+        def upd(ksp,iter,rnorm):
+            #print "iter:",iter,"norm:",rnorm
+            if iter < iterguess: pbar.update(iter)
         ksp = KSP()
         ksp.create()
         ksp.setOperators(self.A,self.A,Mat.Structure.SAME_NONZERO_PATTERN)
         ksp.setFromOptions()
+        ksp.setMonitor(upd)
         ksp.solve(self.b,self.x)
         self.x=self.x.getArray()
-        pbar.update(1)
+        pbar.update(iterguess)
 
     def gradient(self,fmesh):
         self.g = numpy.zeros(s.nele,'d')

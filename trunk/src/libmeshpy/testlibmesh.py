@@ -5,7 +5,6 @@ import os
 import sys
 
 import numpy
-
 libdir=os.path.join("build", "lib.%s-%s" % (get_platform(), sys.version[:3]) )
 sys.path.append(libdir)
 import libmeshpy
@@ -15,16 +14,9 @@ import petsc4py
 petsc4py.init(sys.argv,"linux")
 from petsc4py.PETSc import Mat, KSP, InsertMode
 
-
 import progressbar
 
-#print libmeshpy.doubleSum([1,2,3.14,4]), 10.14
-
-#myArray = numpy.zeros(5,'d')
-#libmeshpy.doubleOnes(myArray)
-#print myArray, numpy.array([1.,1.,1.,1.,1.])
-
-class My(libmeshpy.Updater):
+class MyBar(libmeshpy.Updater):
     def __init__(self,text):
         self.text=text
         libmeshpy.Updater.__init__(self)
@@ -35,9 +27,8 @@ class My(libmeshpy.Updater):
     def update(self,i):
         self.pbar.update(i)
 
-libmeshpy.mesh("../../tmp/in.xda",My("Element matrices and RHS: "))
 
-class load:
+class Matrices:
     def __init__(self,fname):
         self.m=libmeshpy.loadmatrices(fname)
     def loadmatrix(self):
@@ -60,15 +51,16 @@ class load:
         return self.m.readint(),self.m.readint()
 
 class system:
-    def load(self,fname):
-        l=load(fname)
+    def compute_element_matrices(self,fmesh):
+        libmeshpy.mesh(fmesh,MyBar("Element matrices and RHS: "))
+    def assemble(self,fmatrices):
+        l=Matrices(fmatrices)
         nn,ne=l.loadsize()
 #        print "nodes:",nn
 #        print "elements:",ne
         self.nele=ne
-        widgets=['Global matrix and RHS: ', progressbar.Percentage(), ' ', 
-                progressbar.Bar(), ' ', progressbar.ETA()]
-        self.pbar=progressbar.ProgressBar(widgets=widgets,maxval=ne-1).start()
+        self.pbar=MyBar("Global matrix and RHS: ")
+        self.pbar.init(ne-1)
 
         IM=InsertMode.ADD_VALUES
 
@@ -91,33 +83,42 @@ class system:
         self.A.assemble()
 
     def solve(self):
+        pbar=MyBar("Solving Ax=b: ")
+        pbar.init(1)
         ksp = KSP()
         ksp.create()
         ksp.setOperators(self.A,self.A,Mat.Structure.SAME_NONZERO_PATTERN)
         ksp.setFromOptions()
         ksp.solve(self.b,self.x)
+        self.x=self.x.getArray()
+        pbar.update(1)
+
+    def gradient(self,fmesh):
+        self.g = numpy.zeros(s.nele,'d')
+        libmeshpy.grad(fmesh,self.x,self.g,
+                MyBar("Gradient of solution: "))
+
+    def integ(self,fmesh):
+        i =[ libmeshpy.integ(fmesh,self.g,b,
+            MyBar("Integrating the gradient (%d): "%(b))) for b in (1,2,3) ]
+        print "bottom:", i[1]
+        print "top   :", i[0]+i[2],"=",i[0],"+",i[2]
+
+    def save(self,fname):
+        print "saving"
+        import tables
+        h5=tables.openFile(fname,mode="w",title="Test")
+        gsol=h5.createGroup(h5.root,"solver","Ax=b")
+        h5.createArray(gsol,"x",self.x,"solution vector")
+        h5.createArray(gsol,"grad",self.g,"gradient of the solution vector")
+        h5.close()
 
 s=system()
-s.load("../../tmp/matrices")
-print "solving"
+s.compute_element_matrices("../../tmp/in.xda")
+s.assemble("../../tmp/matrices")
 s.solve()
+s.gradient("../../tmp/in.xda")
+s.integ("../../tmp/in.xda")
+s.save("../../tmp/sol.h5")
 
-x = s.x.getArray()
-g = numpy.zeros(s.nele,'d')
-libmeshpy.grad("../../tmp/in.xda",x,g,My("Gradient of solution: "))
-
-i =[ libmeshpy.integ("../../tmp/in.xda",g,b,
-    My("Integrating the gradient (%d): "%(b))) for b in (1,2,3) ]
-print "bottom:", i[1]
-print "top   :", i[0]+i[2],"=",i[0],"+",i[2]
-
-print "saving"
-import tables
-h5=tables.openFile("../../tmp/sol.h5",mode="w",title="Test")
-gsol=h5.createGroup(h5.root,"solver","Ax=b")
-h5.createArray(gsol,"x",x,"solution vector")
-h5.createArray(gsol,"grad",g,"gradient of the solution vector")
-h5.close()
-
-
-print "ok, we are done."
+print "done."

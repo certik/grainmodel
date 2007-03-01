@@ -115,6 +115,9 @@ class System:
 
         all three of them must be initialized petsc vectors (and a matrix) and
         the solution will be stored in self.x as a numpy array.
+
+        The self.x is also returned from "solve", so that the user doesn't have
+        to know about self.x.
         
         The iterguess is the guess for the number of iterations
         the solver is going to make. This is used in the progress bar. If
@@ -136,28 +139,33 @@ class System:
         ksp.solve(self.b,self.x)
         self.x=self.x.getArray()
         pbar.update(iterguess)
+        return self.x
 
-    def gradient(self):
+    def gradient(self,x):
         """Computes an absolute value of the z-component of the gradient
-        (we call it simply a gradient) of the solution. The gradient is
-        computed on every element and the result is stored in self.g as a numpy
-        array"""
-        self.g = numpy.zeros(self.nele,'d')
-        libmeshpy.grad(self.fmesh,self.x,self.g,
-                MyBar("Gradient of solution: "))
+        (we call it simply a gradient) of the scalar field defined on every
+        node (numpy array x). 
+        
+        The gradient is computed on every element and the result is returned as
+        a numpy array."""
+        g = numpy.zeros(self.nele,'d')
+        libmeshpy.grad(self.fmesh,x,g,
+                MyBar("Gradient: "))
+        return g
 
-    def integ(self):
-        """Integrates the gradient over boundary"""
-        i =[ libmeshpy.integ(self.fmesh,self.fboundaries,self.g,b,
-            MyBar("Integrating the gradient (%d): "%(b))) for b in (1,2,3) ]
-        print "bottom:", i[1]
-        print "top   :", i[0]+i[2],"=",i[0],"+",i[2]
+    def integ(self, grad, boundarynum):
+        """Integrates the scalar field "grad" (numpy array of floats for each
+        element) over the boundary given by "boundarynum".
+        
+        Returns a float (=the value of the surface integral)."""
+        return libmeshpy.integ(self.fmesh,self.fboundaries,grad,boundarynum,
+            MyBar("Integrating over surface %d: "%(boundarynum)))
 
-    def save(self, fsol):
-        "Saves self.x and self.g to a file fsol"
+    def save(self, fsol, x, g):
+        "Saves x and g to a file fsol"
         import tables
         h5=tables.openFile(fsol,mode="w",title="Test")
         gsol=h5.createGroup(h5.root,"solver","Ax=b")
-        h5.createArray(gsol,"x",self.x,"solution vector")
-        h5.createArray(gsol,"grad",self.g,"gradient of the solution vector")
+        h5.createArray(gsol,"x",x,"solution vector")
+        h5.createArray(gsol,"grad",g,"gradient of the solution vector")
         h5.close()

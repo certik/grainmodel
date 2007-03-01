@@ -2,13 +2,12 @@
 
 from femlib import System
 
-s=System("tmp/in.xda", "tmp/matrices", "tmp/t12.boundaries",
-        "tmp/sol.h5")
+s=System("tmp/in.xda", "tmp/matrices", "tmp/t12.boundaries")
 s.compute_element_matrices()
 s.assemble()
 s.solve()
 s.gradient()
 s.integ()
-s.save()
+s.save("tmp/sol.h5")
 
 print "done."

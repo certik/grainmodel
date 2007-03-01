@@ -15,7 +15,7 @@ sides=s.integ(grad,4)
 substrate=s.integ(grad,2)
 
 g=numpy.sqrt(grad[0]**2+grad[1]**2+grad[2]**2)
-s.save("tmp/sol.h5", sol, grad)
+s.save("tmp/sol.h5", sol, g)
 
 print "results:"
 print "grain top:",graintop

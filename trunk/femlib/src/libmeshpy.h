@@ -13,10 +13,16 @@ void mesh(const std::string& fmesh, const std::string& fmatrices,
     const std::string& fboundaries, Updater *up);
 
 void grad(const std::string& meshfile, double* x, int xsize, 
-        double* g, int gsize, Updater *up);
+        double* gx, int gxsize,
+        double* gy, int gysize,
+        double* gz, int gzsize,
+        Updater *up);
 
 double integ(const std::string& meshfile, const std::string& fboundaries, 
-        double* x, int xsize, int b, Updater *up);
+        double* x, int xsize,
+        double* y, int ysize,
+        double* z, int zsize,
+        int b, Updater *up);
 
 class loadmatrices
 //currently Ax=F

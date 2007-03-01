@@ -18,6 +18,8 @@ print "results:"
 print "grain top:",graintop
 print "other top:",othertop
 print "sides    :",sides
-print "----- total -----"
 print "substrate:",substrate
-print "the rest :",graintop+othertop+sides
+print "----- total -----"
+print "top      :",graintop+othertop
+print "top+sides:",graintop+othertop+sides
+print "all      :",graintop+othertop+sides+substrate

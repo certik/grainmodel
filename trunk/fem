@@ -1,5 +1,7 @@
 #! /usr/bin/env python
 
+import numpy
+
 from femlib import System
 
 s=System("tmp/in.xda", "tmp/matrices", "tmp/t12.boundaries")
@@ -12,6 +14,7 @@ othertop=s.integ(grad,3)
 sides=s.integ(grad,4)
 substrate=s.integ(grad,2)
 
+g=numpy.sqrt(grad[0]**2+grad[1]**2+grad[2]**2)
 s.save("tmp/sol.h5", sol, grad)
 
 print "results:"

@@ -247,7 +247,7 @@ void mesh(const std::string& fmesh, const std::string& fmatrices,
             int b,s;
             if (bc.find(elem->id()+1,&b,&s))
             for (unsigned int side=0; side<elem->n_sides(); side++)
-                if ((side+1==(unsigned int)s) and (b!=3))
+                if ((side+1==(unsigned int)s) and (b!=3) and (b!=4))
             {
                 if (elem->neighbor(side) != NULL) error();
                 const std::vector<std::vector<Real> >&  phi_face=fe_face->get_phi();

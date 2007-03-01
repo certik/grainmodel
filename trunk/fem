@@ -7,9 +7,17 @@ s.compute_element_matrices()
 s.assemble()
 sol=s.solve()
 grad=s.gradient(sol)
-print s.integ(grad,1)+s.integ(grad,3)
-print s.integ(grad,2)
+graintop=s.integ(grad,1)
+othertop=s.integ(grad,3)
+sides=s.integ(grad,4)
+substrate=s.integ(grad,2)
 
 s.save("tmp/sol.h5", sol, grad)
 
-print "done."
+print "results:"
+print "grain top:",graintop
+print "other top:",othertop
+print "sides    :",sides
+print "----- total -----"
+print "substrate:",substrate
+print "the rest :",graintop+othertop+sides

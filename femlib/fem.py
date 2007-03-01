@@ -142,23 +142,24 @@ class System:
         return self.x
 
     def gradient(self,x):
-        """Computes an absolute value of the z-component of the gradient
-        (we call it simply a gradient) of the scalar field defined on every
+        """Computes a gradient of the scalar field defined on every
         node (numpy array x). 
         
         The gradient is computed on every element and the result is returned as
-        a numpy array."""
-        g = numpy.zeros(self.nele,'d')
-        libmeshpy.grad(self.fmesh,x,g,
-                MyBar("Gradient: "))
-        return g
+        a list of 3 numpy arrays (x,y,z) components."""
+        gx = numpy.zeros(self.nele,'d')
+        gy = numpy.zeros(self.nele,'d')
+        gz = numpy.zeros(self.nele,'d')
+        libmeshpy.grad(self.fmesh,x,gx,gy,gz,MyBar("Gradient: "))
+        return gx,gy,gz
 
     def integ(self, grad, boundarynum):
-        """Integrates the scalar field "grad" (numpy array of floats for each
-        element) over the boundary given by "boundarynum".
+        """Integrates the normal component of "grad" (list of 3 numpy arrays of
+        floats for each element) over the boundary given by "boundarynum".
         
         Returns a float (=the value of the surface integral)."""
-        return libmeshpy.integ(self.fmesh,self.fboundaries,grad,boundarynum,
+        x,y,z=grad
+        return libmeshpy.integ(self.fmesh,self.fboundaries,x,y,z,boundarynum,
             MyBar("Integrating over surface %d: "%(boundarynum)))
 
     def save(self, fsol, x, g):

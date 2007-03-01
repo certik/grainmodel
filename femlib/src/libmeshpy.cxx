@@ -87,6 +87,12 @@ std::vector<unsigned int> *elements;
 std::vector<unsigned int> *sides;
 };
 
+double myabs(double d)
+{
+    if (d<0) return -d;
+    else return d;
+}
+
 void write_int(std::ostream& f, unsigned int i)
 {
     f.write((char *) &i,sizeof(unsigned int));
@@ -284,7 +290,10 @@ void mesh(const std::string& fmesh, const std::string& fmatrices,
 }
 
 void grad(const std::string& meshfile, double* x, int xsize, 
-        double* g, int gsize, Updater *up)
+        double* gx, int gxsize,
+        double* gy, int gysize,
+        double* gz, int gzsize,
+        Updater *up)
 {
     int argc=1; char *p="./lmesh\n"; char **argv=&p;
     libMesh::init (argc, argv);
@@ -341,18 +350,21 @@ void grad(const std::string& meshfile, double* x, int xsize,
             //g=average(gr,gr,gr,gr....) for gr in all gauss points
             gra=(gra*((Real)qp)+gr)/(qp+1);
 		} 
-        g[elem->id()] = gra(1);//.size(); 
+        gx[elem->id()] = gra(0);
+        gy[elem->id()] = gra(1);
+        gz[elem->id()] = gra(2);
 
 	} 
-//        for (int i=0;i<xsize;i++)
-//            g[i]=1/x[i];
 
     }
     libMesh::close();
 }
 
 double integ(const std::string& meshfile, const std::string& fboundaries, 
-        double* x, int xsize, int b, Updater *up) 
+        double* x, int xsize,
+        double* y, int ysize,
+        double* z, int zsize,
+        int b, Updater *up) 
 {
     double S=0.0;
 
@@ -409,13 +421,21 @@ double integ(const std::string& meshfile, const std::string& fboundaries,
             if (elem->neighbor(side) != NULL) error();
 			const std::vector<std::vector<Real> >&  phi_face=fe_face->get_phi();
 			const std::vector<Real>& JxW_face = fe_face->get_JxW();
+			const std::vector<Point>& normals = fe_face->get_normals();
 			fe_face->reinit(elem, side);
 
+//            std::cout << normals[0] << std::endl;
 			for (unsigned int qp=0; qp<qface.n_points(); qp++)
 			{
+                double scalar;
+                scalar=x[elem->id()]*normals[qp](0)+
+                    y[elem->id()]*normals[qp](1)+
+                    z[elem->id()]*normals[qp](2);
+                //scalar=y[elem->id()];
+                //scalar=myabs(scalar);
+                //scalar=1;
 				for (unsigned int i=0; i<phi_face.size(); i++)
-					S += x[elem->id()]*JxW_face[qp]*phi_face[i][qp];
-					//S += JxW_face[qp]*phi_face[i][qp];
+					S += scalar * JxW_face[qp]*phi_face[i][qp];
 			} 
 
 		}

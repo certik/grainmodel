@@ -30,7 +30,11 @@
 %apply (double* INPLACE_ARRAY1, int DIM1) {(double* array,   int size)};
 
 %apply (double* IN_ARRAY1, int DIM1) {(double* x,   int xsize)};
-%apply (double* INPLACE_ARRAY1, int DIM1) {(double* g,   int gsize)};
+%apply (double* IN_ARRAY1, int DIM1) {(double* y,   int ysize)};
+%apply (double* IN_ARRAY1, int DIM1) {(double* z,   int zsize)};
+%apply (double* INPLACE_ARRAY1, int DIM1) {(double* gx,   int gxsize)};
+%apply (double* INPLACE_ARRAY1, int DIM1) {(double* gy,   int gysize)};
+%apply (double* INPLACE_ARRAY1, int DIM1) {(double* gz,   int gzsize)};
 
 %feature("director") Updater;
 /* Include the header file to be wrapped */

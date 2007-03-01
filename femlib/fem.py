@@ -156,6 +156,10 @@ class System:
     def integ(self, grad, boundarynum):
         """Integrates the normal component of "grad" (list of 3 numpy arrays of
         floats for each element) over the boundary given by "boundarynum".
+
+        We are integrating grad*n, where n is the normal, pointing always out
+        of the element. boundarynum defines a set of elements and their faces,
+        over which we are integrating and this defines the normal definitely.
         
         Returns a float (=the value of the surface integral)."""
         x,y,z=grad

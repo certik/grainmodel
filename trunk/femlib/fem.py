@@ -11,53 +11,77 @@ from petsc4py.PETSc import Mat, KSP, InsertMode
 import progressbar
 
 class MyBar(libmeshpy.Updater):
+    """Encapsulation of a nice progress bar"""
+
     def __init__(self,text):
         self.text=text
         libmeshpy.Updater.__init__(self)
+
     def init(self,max):
         widgets=[self.text, progressbar.Percentage(), ' ', 
                 progressbar.Bar(), ' ', progressbar.ETA()]
         self.pbar=progressbar.ProgressBar(widgets=widgets,maxval=max).start()
+
     def update(self,i):
         self.pbar.update(i)
 
 
 class Matrices:
+    """Encapsulates the loadmatrices C++ class for loading the element
+    matrices stored in a binary format"""
+
     def __init__(self,fname):
         self.m=libmeshpy.loadmatrices(fname)
+
     def loadmatrix(self):
+        "Reads 16 floats and returns a 4x4 numpy array"
         x=numpy.zeros((4,4))
         for j in range(4):
             for i in range(4):
                 x[i,j]=self.m.readfloat()
         return x
+
     def loadindices(self):
+        "Reads (int,int,int,int) and returns a numpy vector"
         x=numpy.zeros((4),dtype=int)
         for i in range(4):
             x[i]=self.m.readint()
         return x
+
     def loadvector(self):
+        "Reads (float,float,float,float) and returns a numpy vector"
         x=numpy.zeros((4))
         for i in range(4):
             x[i]=self.m.readfloat()
         return x
+
     def loadsize(self):
+        "Reads (int,int)  = (number of nodes, number of elements)"
         return self.m.readint(),self.m.readint()
 
 class System:
-    def __init__(self,fmesh,fmatrices,fboundaries,fsol):
+
+    def __init__(self,fmesh,fmatrices,fboundaries):
         self.fmesh=fmesh
         self.fmatrices=fmatrices
         self.fboundaries=fboundaries
-        self.fsol=fsol
+
     def compute_element_matrices(self):
+        """Calculates the element matrices and RHS and includes boundary
+        conditions in them. The matrices and RHS together with global indices
+        and are stored in self.fmatrices file."""
         libmeshpy.mesh(self.fmesh,self.fmatrices,self.fboundaries,
                 MyBar("Element matrices and RHS: "))
+
     def assemble(self):
+        """Ax=b    Assembles A and b using the matrices and RHS and indices
+        stored in the file self.fmatrices.
+        
+        self.A, self.b and self.x then contain initialized petsc matricx and
+        vectors.
+        """
         l=Matrices(self.fmatrices)
         nn,ne=l.loadsize()
-#        print "nodes:",nn
-#        print "elements:",ne
         self.nele=ne
         pbar=MyBar("Global matrix and RHS: ")
         pbar.init(ne-1)
@@ -114,19 +138,25 @@ class System:
         pbar.update(iterguess)
 
     def gradient(self):
+        """Computes an absolute value of the z-component of the gradient
+        (we call it simply a gradient) of the solution. The gradient is
+        computed on every element and the result is stored in self.g as a numpy
+        array"""
         self.g = numpy.zeros(self.nele,'d')
         libmeshpy.grad(self.fmesh,self.x,self.g,
                 MyBar("Gradient of solution: "))
 
     def integ(self):
+        """Integrates the gradient over boundary"""
         i =[ libmeshpy.integ(self.fmesh,self.fboundaries,self.g,b,
             MyBar("Integrating the gradient (%d): "%(b))) for b in (1,2,3) ]
         print "bottom:", i[1]
         print "top   :", i[0]+i[2],"=",i[0],"+",i[2]
 
-    def save(self):
+    def save(self, fsol):
+        "Saves self.x and self.g to a file fsol"
         import tables
-        h5=tables.openFile(self.fsol,mode="w",title="Test")
+        h5=tables.openFile(fsol,mode="w",title="Test")
         gsol=h5.createGroup(h5.root,"solver","Ax=b")
         h5.createArray(gsol,"x",self.x,"solution vector")
         h5.createArray(gsol,"grad",self.g,"gradient of the solution vector")

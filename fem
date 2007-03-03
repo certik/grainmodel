@@ -37,9 +37,6 @@ def fem():
     sides=s.integ(grad,4)
     substrate=s.integ(grad,2)
 
-    g=numpy.sqrt(grad[0]**2+grad[1]**2+grad[2]**2)
-    s.save("tmp/sol.h5", sol, g)
-
     print "results:"
     print "grain top:",graintop
     print "other top:",othertop
@@ -53,9 +50,10 @@ def fem():
     fname="tmp/sol.h5"
     m=meshutils.mesh()
     m.readmsh("tmp/t12.msh")
-    x,g=s.load(fname)
-    m.scalars=x
+    m.scalars=sol
     m.writescalarspos(fname[:-4]+".pos","libmesh")
+    g=numpy.sqrt(grad[0]**2+grad[1]**2+grad[2]**2)
+    #s.save("tmp/sol.h5", sol, g)
     m.convert_el_to_nodes(g)
     m.writescalarspos(fname[:-4]+"g.pos","libmesh")
 

@@ -66,7 +66,7 @@ class System:
         self.fmatrices=fmatrices
         self.fboundaries=fboundaries
 
-    def compute_element_matrices(self,bvalues):
+    def compute_element_matrices(self,bvalues,lam):
         """Calculates the element matrices and RHS and includes boundary
         conditions in them. The matrices and RHS together with global indices
         and are stored in self.fmatrices file.
@@ -74,9 +74,11 @@ class System:
         
         bvalues is a dict with boundary number and a double value
         example: bvalues={1:1.0, 2: 0.0}
+
+        lam: double array of lambda for each element
         """
         libmeshpy.mesh(self.fmesh,self.fmatrices,self.fboundaries,
-                bvalues.values(),bvalues.keys(),
+                bvalues.values(),bvalues.keys(),lam,
                 MyBar("Element matrices and RHS: "))
 
     def assemble(self):

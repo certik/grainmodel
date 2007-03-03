@@ -31,6 +31,7 @@
 
 %apply (double* IN_ARRAY1, int DIM1) {(double* bvalues,   int vsize)};
 %apply (int* IN_ARRAY1, int DIM1) {(int* bidx,   int isize)};
+%apply (double* IN_ARRAY1, int DIM1) {(double* lambda, int lsize)};
 
 %feature("director") Updater;
 /* Include the header file to be wrapped */

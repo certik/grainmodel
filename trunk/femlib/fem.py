@@ -175,3 +175,13 @@ class System:
         h5.createArray(gsol,"x",x,"solution vector")
         h5.createArray(gsol,"grad",g,"gradient of the solution vector")
         h5.close()
+
+    def load(self, fname):
+        "Loads x and g from the file fname and returns (x,g)"
+        import tables
+        h5=tables.openFile(fname,mode="r")
+        x=h5.root.solver.x.read()
+        g=h5.root.solver.grad.read()
+        h5.close()
+        return (x,g)
+

@@ -6,6 +6,7 @@ import numpy
 import pexpect
 
 import geom
+from geom import meshutils
 from femlib import System
 
 def mesh():
@@ -49,6 +50,14 @@ def fem():
     print "top+sides:",graintop+othertop+sides
     print "all      :",graintop+othertop+sides+substrate
 
+    fname="tmp/sol.h5"
+    m=meshutils.mesh()
+    m.readmsh("tmp/t12.msh")
+    x,g=s.load(fname)
+    m.scalars=x
+    m.writescalarspos(fname[:-4]+".pos","libmesh")
+    m.convert_el_to_nodes(g)
+    m.writescalarspos(fname[:-4]+"g.pos","libmesh")
 
 
 mesh()

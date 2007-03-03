@@ -29,3 +29,7 @@ a better interface
 
 - it seems the boundary integration is quite slow compared to the gradient.
   Isn't it caused by the boundary elements finding? If so, try to fix it.
+
+- implement adaptive mesh refinement, tetgen should be able to do that. 
+
+- try quadratic elements, this should make it a lot more precise.

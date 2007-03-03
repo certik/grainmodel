@@ -89,8 +89,9 @@ class System:
         IM=InsertMode.ADD_VALUES
 
         self.A=Mat()
-        self.A.create()
-        self.A.setSizes(nn)
+        self.A.createSeqAIJ(nn,nz=30)
+#        self.A.create()
+#        self.A.setSizes(nn)
         self.A.setFromOptions()
 #        self.A.option = Mat.Option.ROWS_SORTED
 #        self.A.option = Mat.Option.COLUMNS_SORTED

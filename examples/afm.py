@@ -20,8 +20,8 @@ def mesh():
     geom.write_tetgen(g,"../tmp/t.poly")
     geom.runtetgen("/home/ondra/femgeom/tetgen/tetgen","../tmp/t.poly",
             #a=0.0001,Q=0.8)
-            #a=0.1)
-            a=0.1,quadratic=True)
+            #a=0.0001,Q=0.8)
+            a=0.001,Q=0.8,quadratic=True)
     m=geom.read_tetgen("../tmp/t.1")
     m.printinfo()
     m.writemsh("../tmp/t12.msh")

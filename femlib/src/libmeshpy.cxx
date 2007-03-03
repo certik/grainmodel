@@ -277,9 +277,6 @@ void mesh(const std::string& fmesh, const std::string& fmatrices,
         DenseVector<Number> Fee;
         std::vector<unsigned int> dof_indices;
 
-        QGauss qquad(2,FIFTH);
-        qquad.init(QUAD4);
-
         BC bc(fboundaries.c_str(),bvalues,bidx,isize);
         matrices mymatrices(fmatrices.c_str());
         mymatrices.setsize(mesh.n_nodes(),mesh.n_elem(), linear);
@@ -382,9 +379,6 @@ void grad(const std::string& meshfile, double* x, int xsize,
 	DenseVector<Number> Fee;
 	std::vector<unsigned int> dof_indices;
 
-    QGauss qquad(2,FIFTH);
-    qquad.init(QUAD4);
-
 	MeshBase::const_element_iterator       el     = mesh.elements_begin();
 	const MeshBase::const_element_iterator end_el = mesh.elements_end();
     if (up!=NULL) up->init(mesh.n_elem()-1);
@@ -455,9 +449,6 @@ double integ(const std::string& meshfile, const std::string& fboundaries,
 	std::vector<unsigned int> dof_indices;
 
     BC bc(fboundaries.c_str());
-
-    QGauss qquad(2,FIFTH);
-    qquad.init(QUAD4);
 
 	MeshBase::const_element_iterator       el     = mesh.elements_begin();
 	const MeshBase::const_element_iterator end_el = mesh.elements_end();

@@ -1,3 +1,2 @@
-./mesh
 ./fem
 src/mesh/gmv2pos

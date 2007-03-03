@@ -5,4 +5,24 @@ a better interface
 
 - consider adding the femlib to femgeom, but later.
 
-- create assemble matrices for each problem.
+- create assemble matrices code for each problem.
+
+
+
+
+- create a specialized gradint C++ function, that will compute the gradient
+  only at elements, which concern us and also immediately integrates it over
+  the element faces. This should make it much faster than it is now.
+
+- possibly try to use libmesh node numbering, if it makes things faster
+
+- write a mockup C++ function, that will loop over "elements" but will do
+  nothing, just call the python progressbar code. If it slow, implement
+  Updater->update to check if the percentage changed and if so, than call
+  update_python. In python rename the method name from update to update_python
+
+- try to create the numpy array from the file in C++, this could make it quite
+  a lot faster
+
+- if it's not enough, do the whall assembly in C++. It's a black box anyway.
+  But still I would prefer python.

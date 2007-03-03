@@ -100,7 +100,9 @@ class System:
         IM=InsertMode.ADD_VALUES
 
         self.A=Mat()
-        self.A.createSeqAIJ(nn,nz=30)
+        if linear: prealloc=30
+        else: prealloc=100
+        self.A.createSeqAIJ(nn,nz=prealloc)
 #        self.A.create()
 #        self.A.setSizes(nn)
         self.A.setFromOptions()

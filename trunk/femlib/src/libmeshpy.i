@@ -14,13 +14,6 @@
   import_array();
 %}
 
-/* Apply the Numeric typemaps for 1D input arrays */
-%apply (short*  IN_ARRAY1, int DIM1) {(short*  series, int size)};
-%apply (int*    IN_ARRAY1, int DIM1) {(int*    series, int size)};
-%apply (long*   IN_ARRAY1, int DIM1) {(long*   series, int size)};
-%apply (float*  IN_ARRAY1, int DIM1) {(float*  series, int size)};
-%apply (double* IN_ARRAY1, int DIM1) {(double* series, int size)};
-
 /* Apply the Numeric typemaps for 2D input arrays */
 %apply (int*    IN_ARRAY2, int DIM1, int DIM2) {(int*    matrix, int rows, int cols)};
 %apply (double* IN_ARRAY2, int DIM1, int DIM2) {(double* matrix, int rows, int cols)};
@@ -35,6 +28,9 @@
 %apply (double* INPLACE_ARRAY1, int DIM1) {(double* gx,   int gxsize)};
 %apply (double* INPLACE_ARRAY1, int DIM1) {(double* gy,   int gysize)};
 %apply (double* INPLACE_ARRAY1, int DIM1) {(double* gz,   int gzsize)};
+
+%apply (double* IN_ARRAY1, int DIM1) {(double* bvalues,   int vsize)};
+%apply (int* IN_ARRAY1, int DIM1) {(int* bidx,   int isize)};
 
 %feature("director") Updater;
 /* Include the header file to be wrapped */

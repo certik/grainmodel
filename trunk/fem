@@ -28,7 +28,7 @@ def mesh():
 
 def fem():
     s=System("tmp/in.xda", "tmp/matrices", "tmp/t12.boundaries")
-    s.compute_element_matrices()
+    s.compute_element_matrices({2:0.0, 1: 1.0})
     s.assemble()
     sol=s.solve()
     grad=s.gradient(sol)

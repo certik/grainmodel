@@ -12,9 +12,9 @@ from geom import meshutils
 from femlib import System
 
 def mesh():
-    meshgeometry="../meshes/t.geo"
+    meshgeometry="../meshes/afm.geo"
 
-    pexpect.run("gmsh -0 %s -o tmp/x.geo"%(meshgeometry))
+    pexpect.run("gmsh -0 %s -o ../tmp/x.geo"%(meshgeometry))
     g=geom.read_gmsh("../tmp/x.geo")
     g.printinfo()
     geom.write_tetgen(g,"../tmp/t.poly")
@@ -29,24 +29,18 @@ def mesh():
 
 def fem():
     s=System("../tmp/in.xda", "../tmp/matrices", "../tmp/t12.boundaries")
-    s.compute_element_matrices()
+    s.compute_element_matrices({1: 0.0, 2: 1.0})
     s.assemble()
     sol=s.solve()
     grad=s.gradient(sol)
-    graintop=s.integ(grad,1)
-    othertop=s.integ(grad,3)
-    sides=s.integ(grad,4)
-    substrate=s.integ(grad,2)
+    substrate=s.integ(grad,1)
+    tip=s.integ(grad,2)
 
     print "results:"
-    print "grain top:",graintop
-    print "other top:",othertop
-    print "sides    :",sides
+    print "tip      :",tip
     print "substrate:",substrate
     print "----- total -----"
-    print "top      :",graintop+othertop
-    print "top+sides:",graintop+othertop+sides
-    print "all      :",graintop+othertop+sides+substrate
+    print "all      :",tip+substrate
 
     fname="../tmp/sol.h5"
     m=meshutils.mesh()

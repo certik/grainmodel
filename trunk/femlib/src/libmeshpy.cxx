@@ -62,6 +62,31 @@ public:
             }
         }
     }
+    BC(const char *fname, double *bvalues, int* bidx, int bsize)
+    {
+        this->bidx=bidx;
+        this->bvalues=bvalues;
+        this->bsize=bsize;
+        std::ifstream f(fname);
+        f >> NN;
+        elements=new std::vector<unsigned int>[NN];
+        sides=new std::vector<unsigned int>[NN];
+        for (int k=0;k<NN;k++)
+        {
+            int n;
+            f >> n;
+            int count;
+            f >> count;
+            for (int j=0;j<count;j++)
+            {
+                int i;
+                f >> i;
+                elements[k].push_back(i);
+                f >> i;
+                sides[k].push_back(i);
+            }
+        }
+    }
     ~BC()
     {
         //this doesn't work - but it's not necessary after all
@@ -81,10 +106,38 @@ public:
                 }
         return false;
     }
+    bool isin(int i, int* bidx, int isize, int *k)
+    {
+        for (int j=0;j<isize;j++)
+            if (bidx[j]==i) 
+            {
+                *k=j;
+                return true;
+            }
+        return false;
+    }
+    bool find2(unsigned int id,int *b, int *s, double *bval)
+    //beware: libmesh counts elements, nodes and sides from 0, but in this
+    //routine we count from 1.
+    {
+        if (find(id,b,s)) 
+        {
+            int j;
+            if (isin(*b,bidx,bsize,&j))
+            {
+                *bval=bvalues[j];
+                return true;
+            }
+        }
+        return false;
+    }
 
 int NN;
 std::vector<unsigned int> *elements;
 std::vector<unsigned int> *sides;
+double *bvalues;
+int *bidx;
+int bsize;
 };
 
 double myabs(double d)
@@ -183,7 +236,10 @@ class matrices
 };
 
 void mesh(const std::string& fmesh, const std::string& fmatrices,
-    const std::string& fboundaries, Updater *up)
+    const std::string& fboundaries,
+    double* bvalues, int vsize,
+    int* bidx, int isize,
+    Updater *up)
 {
     int argc=1; char *p="./lmesh\n"; char **argv=&p;
     libMesh::init (argc, argv);
@@ -218,10 +274,7 @@ void mesh(const std::string& fmesh, const std::string& fmatrices,
         QGauss qquad(2,FIFTH);
         qquad.init(QUAD4);
 
-        //std::cout << "nodes: " << mesh.n_nodes() << "; elements: " 
-        //    << mesh.n_elem() << std::endl;
-
-        BC bc(fboundaries.c_str());
+        BC bc(fboundaries.c_str(),bvalues,bidx,isize);
         matrices mymatrices(fmatrices.c_str());
         mymatrices.setsize(mesh.n_nodes(),mesh.n_elem());
 
@@ -251,19 +304,17 @@ void mesh(const std::string& fmesh, const std::string& fmatrices,
 
             {
             int b,s;
-            if (bc.find(elem->id()+1,&b,&s))
+            double bval;
+            if (bc.find2(elem->id()+1,&b,&s,&bval))
             for (unsigned int side=0; side<elem->n_sides(); side++)
-                if ((side+1==(unsigned int)s) and (b!=3) and (b!=4))
+                if ((side+1==(unsigned int)s) )
             {
                 if (elem->neighbor(side) != NULL) error();
                 const std::vector<std::vector<Real> >&  phi_face=fe_face->get_phi();
                 const std::vector<Real>& JxW_face = fe_face->get_JxW();
                 fe_face->reinit(elem, side);
 
-                Real value;
-                if (b==1) value=1.0;
-                else if (b==2) value=0.0;
-                else error()
+                Real value=bval;
 
                 for (unsigned int qp=0; qp<qface.n_points(); qp++)
                 {

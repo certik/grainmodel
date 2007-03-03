@@ -9,8 +9,13 @@ class Updater
         virtual void update(int i)=0;
 };
 
+//void mesh(const std::string& fmesh, const std::string& fmatrices,
+//    const std::string& fboundaries, Updater *up);
 void mesh(const std::string& fmesh, const std::string& fmatrices,
-    const std::string& fboundaries, Updater *up);
+    const std::string& fboundaries,
+    double* bvalues, int vsize,
+    int* bidx, int isize,
+    Updater *up);
 
 void grad(const std::string& meshfile, double* x, int xsize, 
         double* gx, int gxsize,

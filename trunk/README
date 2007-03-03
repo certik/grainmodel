@@ -22,10 +22,10 @@ usage
 
 input is the geometry in mesh/t.geo
 
-./mesh
 ./fem
 
-output is the solution in tmp/sol.pos
+output is the solution in tmp/so.pos
+and gradient in tmp/sog.pos
 
 ./show
 

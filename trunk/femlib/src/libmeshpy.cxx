@@ -239,6 +239,7 @@ void mesh(const std::string& fmesh, const std::string& fmatrices,
     const std::string& fboundaries,
     double* bvalues, int vsize,
     int* bidx, int isize,
+    double* lambda, int lsize,
     Updater *up)
 {
     int argc=1; char *p="./lmesh\n"; char **argv=&p;
@@ -296,10 +297,10 @@ void mesh(const std::string& fmesh, const std::string& fmatrices,
 
             for (unsigned int qp=0; qp<qrule.n_points(); qp++)
             {
-                Real lambda=1.0;
+                Real lam=lambda[elem->id()];
                 for (unsigned int i=0; i<phi.size(); i++)
                 for (unsigned int j=0; j<phi.size(); j++)
-                    Ke(i,j) += JxW[qp]*(dphi[i][qp]*dphi[j][qp])*lambda;
+                    Ke(i,j) += JxW[qp]*(dphi[i][qp]*dphi[j][qp])*lam;
             } 
 
             {

@@ -23,12 +23,20 @@ def mesh():
     m.printinfo()
     m.writemsh("tmp/t12.msh")
     m.writexda("tmp/in.xda")
-    m.writeregions("tmp/t12.regions")
+    #m.writeregions("tmp/t12.regions")
+    global regions,nele
+    regions=m.regions
+    nele=len(m.elements)
     m.writeBC("tmp/t12.boundaries")
 
 def fem():
     s=System("tmp/in.xda", "tmp/matrices", "tmp/t12.boundaries")
-    s.compute_element_matrices({2:0.0, 1: 1.0})
+    lam=numpy.zeros((nele),"d")
+    r={100:0.001, 101: 0.1}
+    for reg in regions:
+        for i in regions[reg]:
+            lam[i-1]=r[reg]
+    s.compute_element_matrices({2:0.0, 1: 1.0},lam)
     s.assemble()
     sol=s.solve()
     grad=s.gradient(sol)

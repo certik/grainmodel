@@ -26,3 +26,6 @@ a better interface
 
 - if it's not enough, do the whall assembly in C++. It's a black box anyway.
   But still I would prefer python.
+
+- it seems the boundary integration is quite slow compared to the gradient.
+  Isn't it caused by the boundary elements finding? If so, try to fix it.

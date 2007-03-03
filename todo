@@ -24,7 +24,7 @@ a better interface
 - try to create the numpy array from the file in C++, this could make it quite
   a lot faster
 
-- if it's not enough, do the whall assembly in C++. It's a black box anyway.
+- if it's not enough, do the whole assembly in C++. It's a black box anyway.
   But still I would prefer python.
 
 - it seems the boundary integration is quite slow compared to the gradient.

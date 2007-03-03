@@ -215,10 +215,11 @@ class matrices
         {
             delete f;
         }
-        void setsize(int nn, int ne)
+        void setsize(int nn, int ne, int linear)
         {
             write_int(*f,nn);
             write_int(*f,ne);
+            write_int(*f,linear);
         }
         void addtoA(DenseMatrix<Number> Ae,
                 std::vector<unsigned int>& dof_indices,
@@ -248,9 +249,13 @@ void mesh(const std::string& fmesh, const std::string& fmatrices,
         Mesh mesh(3);
         mesh.read(fmesh);
         mesh.find_neighbors();
+        int linear=mesh.elem(0)->type()==TET4;
         EquationSystems equation_systems (mesh);
         equation_systems.add_system<LinearImplicitSystem> ("Poisson");
-        equation_systems.get_system("Poisson").add_variable("u", FIRST);
+        if (linear)
+            equation_systems.get_system("Poisson").add_variable("u", FIRST);
+        else
+            equation_systems.get_system("Poisson").add_variable("u", SECOND);
         equation_systems.init();
 
         const unsigned int dim = mesh.mesh_dimension();
@@ -277,7 +282,7 @@ void mesh(const std::string& fmesh, const std::string& fmatrices,
 
         BC bc(fboundaries.c_str(),bvalues,bidx,isize);
         matrices mymatrices(fmatrices.c_str());
-        mymatrices.setsize(mesh.n_nodes(),mesh.n_elem());
+        mymatrices.setsize(mesh.n_nodes(),mesh.n_elem(), linear);
 
         unsigned int nodemap[mesh.n_nodes()];
         for (unsigned int i=0;i<mesh.n_nodes();i++)
@@ -291,6 +296,8 @@ void mesh(const std::string& fmesh, const std::string& fmatrices,
             const Elem* elem = *el;
             if (up!=NULL) up->update(elem->id());
             dof_map.dof_indices (elem, dof_indices);
+            //std::cout << dof_indices.size() << " " <<
+            //    elem->type() << std::endl;
             fe->reinit (elem);
             Ke.resize (dof_indices.size(), dof_indices.size());
             Fee.resize (dof_indices.size());

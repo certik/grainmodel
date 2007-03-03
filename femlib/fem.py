@@ -33,31 +33,31 @@ class Matrices:
     def __init__(self,fname):
         self.m=libmeshpy.loadmatrices(fname)
 
-    def loadmatrix(self):
-        "Reads 16 floats and returns a 4x4 numpy array"
-        x=numpy.zeros((4,4))
-        for j in range(4):
-            for i in range(4):
+    def loadmatrix(self,dim=4):
+        "Reads dim**2 floats and returns a dim x dim numpy array"
+        x=numpy.zeros((dim,dim))
+        for j in range(dim):
+            for i in range(dim):
                 x[i,j]=self.m.readfloat()
         return x
 
-    def loadindices(self):
-        "Reads (int,int,int,int) and returns a numpy vector"
-        x=numpy.zeros((4),dtype=int)
-        for i in range(4):
+    def loadindices(self,dim=4):
+        "Reads dim ints and returns a numpy vector"
+        x=numpy.zeros((dim),dtype=int)
+        for i in range(dim):
             x[i]=self.m.readint()
         return x
 
-    def loadvector(self):
-        "Reads (float,float,float,float) and returns a numpy vector"
-        x=numpy.zeros((4))
-        for i in range(4):
+    def loadvector(self,dim=4):
+        "Reads dim floats and returns a numpy vector"
+        x=numpy.zeros((dim))
+        for i in range(dim):
             x[i]=self.m.readfloat()
         return x
 
     def loadsize(self):
-        "Reads (int,int)  = (number of nodes, number of elements)"
-        return self.m.readint(),self.m.readint()
+        "Reads (int,int,int)  = (number of nodes, number of elements, linear)"
+        return self.m.readint(),self.m.readint(),self.m.readint()
 
 class System:
 
@@ -89,7 +89,10 @@ class System:
         vectors.
         """
         l=Matrices(self.fmatrices)
-        nn,ne=l.loadsize()
+        nn,ne,linear=l.loadsize()
+        assert linear in [0,1]
+        if linear: dim=4
+        else: dim=10
         self.nele=ne
         pbar=MyBar("Global matrix and RHS: ")
         pbar.init(ne-1)
@@ -107,9 +110,9 @@ class System:
         self.x,self.b=self.A.getVecs()
         self.b.zeroEntries()
         for i in range(ne):
-            indices=l.loadindices()
-            Ae=l.loadmatrix()
-            Fe=l.loadvector()
+            indices=l.loadindices(dim)
+            Ae=l.loadmatrix(dim)
+            Fe=l.loadvector(dim)
             self.A.setValues(indices,indices,Ae,IM)
             self.b.setValues(indices,Fe,IM)
             pbar.update(i)

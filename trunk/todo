@@ -33,3 +33,7 @@ a better interface
 - implement adaptive mesh refinement, tetgen should be able to do that. 
 
 - try quadratic elements, this should make it a lot more precise.
+
+- The Update method in C++ should determine, if the percentage changed, and
+  only in this case call the python code, because the swig has quite a big
+  overhead.

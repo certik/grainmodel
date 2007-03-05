@@ -21,6 +21,7 @@ def mesh():
     geom.runtetgen("/home/ondra/femgeom/tetgen/tetgen","../tmp/t.poly",
             #a=0.0001,Q=0.8)
             #a=0.0001,Q=0.8)
+            #a=0.00007,Q=0.8,quadratic=True)
             a=0.001,Q=0.8,quadratic=True)
     m=geom.read_tetgen("../tmp/t.1")
     m.printinfo()

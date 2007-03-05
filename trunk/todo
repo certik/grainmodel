@@ -37,3 +37,13 @@ a better interface
 - The Update method in C++ should determine, if the percentage changed, and
   only in this case call the python code, because the swig has quite a big
   overhead.
+
+- reduce the number of needed files. the boundary conditions should be added as
+  parameters, thus boundary condition file should be eliminated.
+
+- femlib should be just a FEM library, no files, no nothing. Just well
+  designed, well tested building blocks. 
+
+- the controlling script will contain some abstraction and will handle files.
+  Let's move some algorithms to the FEM library, if they can by transformed
+  into building blocks.

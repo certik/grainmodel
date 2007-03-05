@@ -61,10 +61,11 @@ class Matrices:
 
 class System:
 
-    def __init__(self,fmesh,fmatrices,fboundaries):
+    def __init__(self,fmesh,fmatrices,fboundaries,verbose=True):
         self.fmesh=fmesh
         self.fmatrices=fmatrices
         self.fboundaries=fboundaries
+        self.verbose=verbose
 
     def compute_element_matrices(self,bvalues,lam):
         """Calculates the element matrices and RHS and includes boundary
@@ -77,9 +78,10 @@ class System:
 
         lam: double array of lambda for each element
         """
+        if self.verbose: up=MyBar("Element matrices and RHS: ")
+        else: up=None
         libmeshpy.mesh(self.fmesh,self.fmatrices,self.fboundaries,
-                bvalues.values(),bvalues.keys(),lam,
-                MyBar("Element matrices and RHS: "))
+                bvalues.values(),bvalues.keys(),lam,up)
 
     def assemble(self):
         """Ax=b    Assembles A and b using the matrices and RHS and indices
@@ -94,8 +96,8 @@ class System:
         if linear: dim=4
         else: dim=10
         self.nele=ne
-        pbar=MyBar("Global matrix and RHS: ")
-        pbar.init(ne-1)
+        if self.verbose: pbar=MyBar("Global matrix and RHS: ")
+        if self.verbose: pbar.init(ne-1)
 
         IM=InsertMode.ADD_VALUES
 
@@ -117,7 +119,7 @@ class System:
             Fe=l.loadvector(dim)
             self.A.setValues(indices,indices,Ae,IM)
             self.b.setValues(indices,Fe,IM)
-            pbar.update(i)
+            if self.verbose: pbar.update(i)
         self.A.assemble()
 
     def solve(self,iterguess=23):
@@ -140,8 +142,8 @@ class System:
         at 99% (exactly at (iterguess-1)/iterguess * 100) but the solver will
         be still computing and the progressbar will be updated to 100% only
         when it returns."""
-        pbar=MyBar("Solving Ax=b: ")
-        pbar.init(iterguess)
+        if self.verbose: pbar=MyBar("Solving Ax=b: ")
+        if self.verbose: pbar.init(iterguess)
         def upd(ksp,iter,rnorm):
             #print "iter:",iter,"norm:",rnorm
             if iter < iterguess: pbar.update(iter)
@@ -149,10 +151,10 @@ class System:
         ksp.create()
         ksp.setOperators(self.A,self.A,Mat.Structure.SAME_NONZERO_PATTERN)
         ksp.setFromOptions()
-        ksp.setMonitor(upd)
+        if self.verbose: ksp.setMonitor(upd)
         ksp.solve(self.b,self.x)
         self.x=self.x.getArray()
-        pbar.update(iterguess)
+        if self.verbose: pbar.update(iterguess)
         return self.x
 
     def gradient(self,x):
@@ -164,7 +166,9 @@ class System:
         gx = numpy.zeros(self.nele,'d')
         gy = numpy.zeros(self.nele,'d')
         gz = numpy.zeros(self.nele,'d')
-        libmeshpy.grad(self.fmesh,x,gx,gy,gz,MyBar("Gradient: "))
+        if self.verbose: up=MyBar("Gradient: ")
+        else: up=None
+        libmeshpy.grad(self.fmesh,x,gx,gy,gz,up)
         return gx,gy,gz
 
     def integ(self, grad, boundarynum):
@@ -177,8 +181,9 @@ class System:
         
         Returns a float (=the value of the surface integral)."""
         x,y,z=grad
-        return libmeshpy.integ(self.fmesh,self.fboundaries,x,y,z,boundarynum,
-            MyBar("Integrating over surface %d: "%(boundarynum)))
+        if self.verbose: up=MyBar("Integrating over surface %d: "%(boundarynum))
+        else: up=None
+        return libmeshpy.integ(self.fmesh,self.fboundaries,x,y,z,boundarynum,up)
 
     def save(self, fsol, x, g):
         "Saves x and g to a file fsol"

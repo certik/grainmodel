@@ -22,7 +22,7 @@ def mesh():
             #a=0.0001,Q=0.8)
             #a=0.0001,Q=0.8)
             #a=0.00007,Q=0.8,quadratic=True)
-            a=0.001,Q=0.8,quadratic=True)
+            a=0.1,quadratic=True)
     m=geom.read_tetgen("../tmp/t.1")
     m.printinfo()
     m.writemsh("../tmp/t12.msh")
@@ -69,6 +69,39 @@ def fem():
     m.convert_el_to_nodes(g)
     m.writescalarspos(fname[:-4]+"g.pos","libmesh")
 
+    g = grad[0]**2 + grad[1]**2 + grad[2]**2
+
+    g = convert_grad2constrain(g)
+
+    savevol("../tmp/t.1.vol",g)
+
+
+    geom.runtetgen("/home/ondra/femgeom/tetgen/tetgen","../tmp/t.1",
+            a=0.01,quadratic=True,refine=True)
+    m=geom.read_tetgen("../tmp/t.2")
+    m.printinfo()
+    m.writemsh("../tmp/t12-2.msh")
+    #m.writexda("../tmp/in.xda")
+    #m.writeBC("../tmp/t12.boundaries")
+
+def savevol(filename,vols):
+    f = open(filename,"w")
+    f.write("%d\n"%len(vols))
+    for i,x in enumerate(vols):
+        f.write("%d %f\n"%(i,x))
+
+def convert_grad2constrain(g):
+    #max volume constrain
+    a = 0.001
+    a = 0.1
+    g = g/max(g)
+    g2 = []
+    for x in g:
+        if x/a < 1e-9 or a/x > 1.0:
+            g2.append(-1)
+        else:
+            g2.append(a/x)
+    return g2
 
 mesh()
 fem()

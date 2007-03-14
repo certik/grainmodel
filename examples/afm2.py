@@ -74,8 +74,8 @@ def calc(tipr=0.5,mesha=0.1,meshQ=None,verbose=False):
     r,e=mesh(tipr,mesha,meshQ,verbose)
     return fem(r,e,verbose)
 
-vals=numpy.arange(0.4,0.8,0.05)
-#vals=[0.5]
+#vals=numpy.arange(0.4,0.8,0.05)
+vals=[0.5]
 res=[]
 for tipr in vals:
     print tipr,"-"*40

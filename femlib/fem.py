@@ -3,12 +3,15 @@
 import sys
 
 import numpy
+import pexpect
 
 import libmeshpy
 import petsc4py
 petsc4py.init(sys.argv,"linux")
 from petsc4py.PETSc import Mat, KSP, InsertMode
 import progressbar
+import geom
+from geom import meshutils
 
 class MyBar(libmeshpy.Updater):
     """Encapsulation of a nice progress bar"""
@@ -203,3 +206,117 @@ class System:
         h5.close()
         return (x,g)
 
+class EM:
+    """
+    All other classes in femlib are very clean in the sense, that they do one
+    well defined thing and do it well. 
+
+    This class handles the "dirty" job, i.e. handling the files etc. The user
+    of this class should feel like in the heaven, just telling it the logic.
+    """
+
+    def __init__(self, tmp):
+        "tmp - a place where to store temporary files"
+        self.tmp = tmp
+
+    def load_geometry(self, meshfile_geo):
+        "parses any gmsh *.geo file and loads the geometry"
+        pexpect.run("gmsh -0 %s -o %s/x.geo"%(meshfile_geo,self.tmp))
+        g=geom.read_gmsh("%s/x.geo"%self.tmp)
+        g.printinfo()
+        self.g = g
+
+    def meshit(self):
+        "meshes the geometry in tetgen, "
+        geom.write_tetgen(self.g,"%s/t.poly"%self.tmp)
+        geom.runtetgen("/home/ondra/femgeom/tetgen/tetgen","%s/t.poly"%self.tmp,
+                a=0.1,quadratic=True)
+        m=geom.read_tetgen("%s/t.1"%self.tmp)
+        m.printinfo()
+        m.writemsh("%s/t12.msh"%self.tmp)
+        m.writexda("%s/in.xda"%self.tmp)
+        m.writeBC("%s/t12.boundaries"%self.tmp)
+
+        self.regions=m.regions
+        self.nele=len(m.elements)
+
+    def solve(self):
+        """Constructs the FEM problem and solves it.
+        
+        this works for any mesh - either initial, or refined, we don't care.
+        """
+        r={100:0.001, 101: 0.1}
+        bc={1:0.0, 2: 1.0}
+
+        lam=numpy.zeros((self.nele),"d")
+        for reg in self.regions:
+            for i in self.regions[reg]:
+                lam[i-1]=r[reg]
+
+        s=System("../tmp/in.xda", "../tmp/matrices", "../tmp/t12.boundaries")
+        s.compute_element_matrices(bc,lam)
+        s.assemble()
+        sol=s.solve()
+        grad=s.gradient(sol)
+        substrate=s.integ(grad,1)
+        tip=s.integ(grad,2)
+        sides=s.integ(grad,3)
+        top=s.integ(grad,4)
+
+        print "results:"
+        print "tip      :",tip
+        print "substrate:",substrate
+        print "top      :",top
+        print "sides    :",sides
+        print "----- total -----"
+        print "all      :",tip+substrate+top+sides
+
+        fname="../tmp/sol.h5"
+        m=meshutils.mesh()
+        m.readmsh("../tmp/t12.msh")
+        m.scalars=sol
+        m.writescalarspos(fname[:-4]+".pos","libmesh")
+        g=numpy.sqrt(grad[0]**2+grad[1]**2+grad[2]**2)
+        m.convert_el_to_nodes(g)
+        m.writescalarspos(fname[:-4]+"g.pos","libmesh")
+
+        #up to here, it belongs to solve
+
+        #below, move it move this to refine()
+
+        g = grad[0]**2 + grad[1]**2 + grad[2]**2
+
+        g = convert_grad2constrain(g)
+
+        savevol("../tmp/t.1.vol",g)
+
+
+        geom.runtetgen("/home/ondra/femgeom/tetgen/tetgen","../tmp/t.1",
+                a=0.01,quadratic=True,refine=True)
+        m=geom.read_tetgen("../tmp/t.2")
+        m.printinfo()
+        m.writemsh("../tmp/t12-2.msh")
+        #m.writexda("../tmp/in.xda")
+        #m.writeBC("../tmp/t12.boundaries")
+
+    def refine(self):
+        print "refines the mesh"
+
+def savevol(filename,vols):
+    f = open(filename,"w")
+    f.write("%d\n"%len(vols))
+    for i,x in enumerate(vols):
+        f.write("%d %f\n"%(i,x))
+
+def convert_grad2constrain(g):
+    #max volume constrain
+    a = 0.001
+    a = 0.1
+    g = g/max(g)
+    g2 = []
+    for x in g:
+        if x/a < 1e-9 or a/x > 1.0:
+            g2.append(-1)
+        else:
+            g2.append(a/x)
+    return g2

@@ -4,6 +4,8 @@ Gmsh model of a nanocyrstalline silicon film.
 2007 Ondrej Certik
 */
 
+Print.GeoLabels=0;
+
 h=1.0;
 r=2.0;
 

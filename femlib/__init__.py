@@ -7,4 +7,4 @@ sys.path.append(os.path.join("/home/ondra/grainmodel/femlib/src",libdir))
 sys.path.append(os.path.join("/home/ondra/libmeshpetscpackage/libs/petsc4py",
     libdir))
 
-from fem import System
+from fem import System, EM

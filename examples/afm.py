@@ -7,6 +7,8 @@ sys.path.append("..")
 from femlib import EM
 
 a = EM("../tmp")
+#a = EM("/tmp")
 a.load_geometry("../meshes/afm.geo")
 a.meshit()
-#a.solve()
+a.solve()
+a.refine()

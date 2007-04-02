@@ -253,7 +253,9 @@ class EM:
             for i in self.regions[reg]:
                 lam[i-1]=r[reg]
 
-        s=System("../tmp/in.xda", "../tmp/matrices", "../tmp/t12.boundaries")
+        s=System("%s/in.xda"%self.tmp,
+                "%s/matrices"%self.tmp, 
+                "%s/t12.boundaries"%self.tmp)
         s.compute_element_matrices(bc,lam)
         s.assemble()
         sol=s.solve()
@@ -271,36 +273,33 @@ class EM:
         print "----- total -----"
         print "all      :",tip+substrate+top+sides
 
-        fname="../tmp/sol.h5"
         m=meshutils.mesh()
-        m.readmsh("../tmp/t12.msh")
+        m.readmsh("%s/t12.msh"%self.tmp)
         m.scalars=sol
+        fname="%s/sol.h5"%self.tmp
         m.writescalarspos(fname[:-4]+".pos","libmesh")
         g=numpy.sqrt(grad[0]**2+grad[1]**2+grad[2]**2)
         m.convert_el_to_nodes(g)
         m.writescalarspos(fname[:-4]+"g.pos","libmesh")
 
-        #up to here, it belongs to solve
+        self.grad = grad
 
-        #below, move it move this to refine()
-
-        g = grad[0]**2 + grad[1]**2 + grad[2]**2
-
-        g = convert_grad2constrain(g)
-
-        savevol("../tmp/t.1.vol",g)
-
-
-        geom.runtetgen("/home/ondra/femgeom/tetgen/tetgen","../tmp/t.1",
-                a=0.01,quadratic=True,refine=True)
-        m=geom.read_tetgen("../tmp/t.2")
-        m.printinfo()
-        m.writemsh("../tmp/t12-2.msh")
-        #m.writexda("../tmp/in.xda")
-        #m.writeBC("../tmp/t12.boundaries")
 
     def refine(self):
-        print "refines the mesh"
+        "refines the mesh"
+
+        grad = self.grad
+
+        g = grad[0]**2 + grad[1]**2 + grad[2]**2
+        g = convert_grad2constrain(g)
+        savevol("%s/t.1.vol"%self.tmp,g)
+        geom.runtetgen("/home/ondra/femgeom/tetgen/tetgen","%s/t.1"%self.tmp,
+                a=0.01,quadratic=True,refine=True)
+        m=geom.read_tetgen("%s/t.2"%self.tmp)
+        m.printinfo()
+        m.writemsh("%s/t12-2.msh"%self.tmp)
+        #m.writexda("../tmp/in.xda")
+        #m.writeBC("../tmp/t12.boundaries")
 
 def savevol(filename,vols):
     f = open(filename,"w")

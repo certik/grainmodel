@@ -1,4 +1,4 @@
-install python-dev
+install python-dev, libmesh0.6.0-dev, python-petsc
 
 build:
 -----
@@ -9,6 +9,8 @@ usage:
 ------
 
 ./testlibmesh
+
+(currently doesn't work)
 
 clean
 -----

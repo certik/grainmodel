@@ -5,13 +5,11 @@ import os
 import sys
 
 import numpy
-libdir=os.path.join("build", "lib.%s-%s" % (get_platform(), sys.version[:3]) )
+libdir=os.path.join("src/build", "lib.%s-%s" % (get_platform(), sys.version[:3]) )
 sys.path.append(libdir)
 import libmeshpy
-sys.path.append(os.path.join("/home/ondra/libmeshpetscpackage/libs/petsc4py",
-    libdir))
 import petsc4py
-petsc4py.init(sys.argv,"linux")
+petsc4py.init(sys.argv)
 from petsc4py.PETSc import Mat, KSP, InsertMode
 
 import progressbar

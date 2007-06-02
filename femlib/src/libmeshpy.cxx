@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <math.h>
 #include <iostream>
+
 #include "libmeshpy.h"
 
 /*
@@ -243,8 +244,12 @@ void mesh(const std::string& fmesh, const std::string& fmatrices,
     double* lambda, int lsize,
     Updater *up)
 {
-    int argc=1; char *p="./lmesh\n"; char **argv=&p;
-    libMesh::init (argc, argv);
+    //int argc=1; char *p="./lmesh\n"; char **argv=&p;
+    //char *p[3]={"./lmesh","--disable-mpi","--disable-petsc"}; 
+    //int argc=2; char **argv=p;
+    char *p[1]={"./lmesh"}; 
+    int argc=1; char **argv=p;
+    libMesh::init(argc, argv);
     {    
         Mesh mesh(3);
         mesh.read(fmesh);
@@ -256,6 +261,7 @@ void mesh(const std::string& fmesh, const std::string& fmatrices,
             equation_systems.get_system("Poisson").add_variable("u", FIRST);
         else
             equation_systems.get_system("Poisson").add_variable("u", SECOND);
+        //this needs the MPI initialized:
         equation_systems.init();
 
         const unsigned int dim = mesh.mesh_dimension();

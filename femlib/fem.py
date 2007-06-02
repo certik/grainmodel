@@ -107,7 +107,9 @@ class System:
         self.A=Mat()
         if linear: prealloc=30
         else: prealloc=100
+        print "breaks now:"
         self.A.createSeqAIJ(nn,nz=prealloc)
+        print "never executes..."
 #        self.A.create()
 #        self.A.setSizes(nn)
         self.A.setFromOptions()

@@ -7,7 +7,7 @@ import pexpect
 
 import libmeshpy
 import petsc4py
-petsc4py.init(sys.argv,"linux")
+petsc4py.init(sys.argv)
 from petsc4py.PETSc import Mat, KSP, InsertMode
 import progressbar
 import geom

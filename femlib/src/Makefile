@@ -1,5 +1,6 @@
 INTERFACES = libmeshpy.i
 WRAPPERS   = $(INTERFACES:.i=_wrap.cxx)
+WRAPPERS2  = $(INTERFACES:.i=_wrap.h)
 PROXIES    = $(INTERFACES:.i=.py      )
 
 all: $(WRAPPERS) libmeshpy.cxx libmeshpy.h
@@ -10,5 +11,5 @@ all: $(WRAPPERS) libmeshpy.cxx libmeshpy.h
 
 clean:
 	$(RM) -r build
-	$(RM) $(WRAPPERS)
+	$(RM) $(WRAPPERS) $(WRAPPERS2)
 	$(RM) $(PROXIES)

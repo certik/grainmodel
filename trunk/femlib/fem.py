@@ -5,8 +5,8 @@ import sys
 import numpy
 import pexpect
 
-import libmeshpy
 from petsc4py.PETSc import Mat, KSP, InsertMode
+import libmeshpy
 import progressbar
 import geom
 from geom import meshutils

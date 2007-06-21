@@ -1,3 +1,6 @@
+-last working revision is 121, the newer ones are using debian packages, that
+don't really work.... yeah, because libmesh plays with MPI.. 
+
 - create a better interface to libmesh - i.e. the System.integ should have
 a better interface
 

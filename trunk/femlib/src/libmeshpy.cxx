@@ -250,6 +250,8 @@ void mesh(const std::string& fmesh, const std::string& fmatrices,
     char *p[1]={"./lmesh"}; 
     int argc=1; char **argv=p;
     libMesh::init(argc, argv);
+    //libMesh::close();
+    //return;
     {    
         Mesh mesh(3);
         mesh.read(fmesh);

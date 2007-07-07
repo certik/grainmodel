@@ -1,4 +1,4 @@
-install python-dev, libmesh0.6.0-dev, python-petsc
+wajig install python-dev libmesh0.6.0-dev python-petsc swig
 
 build:
 -----

@@ -1,12 +1,7 @@
--last working revision is 121, the newer ones are using debian packages, that
-don't really work.... yeah, because libmesh plays with MPI.. 
-
 - create a better interface to libmesh - i.e. the System.integ should have
 a better interface
 
 - eventually get rid of the src dir
-
-- consider adding the femlib to femgeom, but later.
 
 - create assemble matrices code for each problem.
 
@@ -43,10 +38,3 @@ a better interface
 
 - reduce the number of needed files. the boundary conditions should be added as
   parameters, thus boundary condition file should be eliminated.
-
-- femlib should be just a FEM library, no files, no nothing. Just well
-  designed, well tested building blocks. 
-
-- the controlling script will contain some abstraction and will handle files.
-  Let's move some algorithms to the FEM library, if they can by transformed
-  into building blocks.

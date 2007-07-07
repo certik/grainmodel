@@ -1,16 +1,15 @@
-wajig install python-dev libmesh0.6.0-dev python-petsc swig
+wajig install python-dev libmesh0.6.0-pure-dev python-petsc swig
 
 build:
 -----
 
 make
 
-usage:
+test:
 ------
 
-./testlibmesh
-
-(currently doesn't work)
+python test.py
+(you might need to run ../fem first)
 
 clean
 -----

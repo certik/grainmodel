@@ -30,13 +30,13 @@ class clean(Command):
         os.system("rm -f MANIFEST")
         os.system("rm -rf build")
         os.system("rm -rf dist")
-        os.system("rm -f femlib/libmeshpy/libmeshpy.py")
-        os.system("rm -f femlib/libmeshpy/libmeshpy_wrap.cpp")
-        os.system("rm -f femlib/libmeshpy/libmeshpy_wrap.h")
+        os.system("rm -f src/femlib/libmeshpy/libmeshpy.py")
+        os.system("rm -f src/femlib/libmeshpy/libmeshpy_wrap.cpp")
+        os.system("rm -f src/femlib/libmeshpy/libmeshpy_wrap.h")
 
-extdir="femlib/libmeshpy"
+extdir="src/femlib/libmeshpy/"
 _libmeshpy = Extension("femlib.libmeshpy._libmeshpy",
-                    [extdir+"/libmeshpy.i", extdir+"/libmeshpy.cxx"],
+                    [extdir+"libmeshpy.i", extdir+"libmeshpy.cxx"],
                     include_dirs = [numpy.get_include(),"/usr/include/libmesh",
                         "/usr/include/mpi","/usr/include/petsc","femlib/src"],
                     extra_compile_args=["-O2"],
@@ -48,7 +48,7 @@ setup(name        = "libmeshpy",
       description = "Libmesh bindings for python",
       author      = "Ondrej Certik",
       packages = ["femlib", "geom", "femlib.libmeshpy"],
-      #py_modules  = ["femlib.libmeshpy"],
+      package_dir = {"": "src"},
       ext_modules = [_libmeshpy],
       cmdclass    = {
                      'clean' : clean, 

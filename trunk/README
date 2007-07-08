@@ -1,11 +1,12 @@
 install grainmodel
 ==================
 
-./make 
+./setup build
+./setup.py install --prefix=$HOME/lib
 
 wajig install python-pexpect python-pyparsing python-syck gmsh
 wajig install python-tables swig
-svn checkout http://femgeom.googlecode.com/svn/trunk/ femgeom
+#svn checkout http://femgeom.googlecode.com/svn/trunk/ femgeom
 
 usage
 =====

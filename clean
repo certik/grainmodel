@@ -5,6 +5,3 @@ rm -f out/*
 py.cleanup
 cd doc
 ./clean
-cd ..
-cd femlib
-make clean

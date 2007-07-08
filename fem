@@ -32,7 +32,7 @@ def fem():
     for reg in regions:
         for i in regions[reg]:
             lam[i-1]=r[reg]
-    s.compute_element_matrices({2:0.0, 1: 1.0},lam)
+    s.compute_element_matrices({1:0.0, 2: 1.0},lam)
     s.assemble()
     sol=s.solve()
     grad=s.gradient(sol)

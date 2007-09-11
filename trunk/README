@@ -1,10 +1,14 @@
 install grainmodel
 ==================
 
-wajig install python-pexpect python-pyparsing python-syck gmsh python-tables swig libmesh0.6.0-pure-dev python-petsc tetgen
+wajig install python-pexpect python-pyparsing python-syck gmsh python-tables swig libmesh0.6.0-pure-dev python-petsc4py tetgen
 
 ./setup build
 ./setup.py install --prefix=$HOME/lib
+
+put this into your .bashrc:
+
+export PYTHONPATH=$HOME/lib/lib/python2.4/site-packages
 
 
 usage

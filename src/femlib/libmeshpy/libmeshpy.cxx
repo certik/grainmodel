@@ -258,7 +258,7 @@ void mesh(const std::string& fmesh, const std::string& fmatrices,
         mesh.find_neighbors();
         int linear=mesh.elem(0)->type()==TET4;
         EquationSystems equation_systems (mesh);
-        equation_systems.add_system<LinearImplicitSystem> ("Poisson");
+        equation_systems.add_system<ExplicitSystem> ("Poisson");
         if (linear)
             equation_systems.get_system("Poisson").add_variable("u", FIRST);
         else
@@ -267,8 +267,8 @@ void mesh(const std::string& fmesh, const std::string& fmatrices,
         equation_systems.init();
 
         const unsigned int dim = mesh.mesh_dimension();
-        LinearImplicitSystem& system=
-            equation_systems.get_system<LinearImplicitSystem>("Poisson");
+        ExplicitSystem& system=
+            equation_systems.get_system<ExplicitSystem>("Poisson");
         const DofMap& dof_map = system.get_dof_map();
         FEType fe_type = dof_map.variable_type(0);
         AutoPtr<FEBase> fe (FEBase::build(dim, fe_type));
@@ -366,12 +366,12 @@ void grad(const std::string& meshfile, double* x, int xsize,
         mesh.read(meshfile);
         mesh.find_neighbors();
         EquationSystems equation_systems (mesh);
-        equation_systems.add_system<LinearImplicitSystem> ("Poisson");
+        equation_systems.add_system<ExplicitSystem> ("Poisson");
         equation_systems.get_system("Poisson").add_variable("u", FIRST);
         equation_systems.init();
         
 	const unsigned int dim = mesh.mesh_dimension();
-	LinearImplicitSystem& system=equation_systems.get_system<LinearImplicitSystem>("Poisson");
+	ExplicitSystem& system=equation_systems.get_system<ExplicitSystem>("Poisson");
 	const DofMap& dof_map = system.get_dof_map();
 	FEType fe_type = dof_map.variable_type(0);
 	AutoPtr<FEBase> fe (FEBase::build(dim, fe_type));
@@ -436,13 +436,13 @@ double integ(const std::string& meshfile, const std::string& fboundaries,
         mesh.read(meshfile);
         mesh.find_neighbors();
         EquationSystems equation_systems (mesh);
-        equation_systems.add_system<LinearImplicitSystem> ("Poisson");
+        equation_systems.add_system<ExplicitSystem> ("Poisson");
         equation_systems.get_system("Poisson").add_variable("u", FIRST);
         equation_systems.init();
         
 
 	const unsigned int dim = mesh.mesh_dimension();
-	LinearImplicitSystem& system=equation_systems.get_system<LinearImplicitSystem>("Poisson");
+	ExplicitSystem& system=equation_systems.get_system<ExplicitSystem>("Poisson");
 	const DofMap& dof_map = system.get_dof_map();
 	FEType fe_type = dof_map.variable_type(0);
 	AutoPtr<FEBase> fe (FEBase::build(dim, fe_type));
